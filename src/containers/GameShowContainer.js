@@ -1,5 +1,6 @@
 import { connect } from 'react-redux'
-import { backToTheShow } from '../actions'
+import { backToTheIndex } from '../actions'
+import { selectKouho } from '../actions/game'
 import GameShowComponent from '../components/GameShowComponent'
 
 const mapStateToProps = (state, ownProps) => ({
@@ -7,7 +8,8 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onBack: () => dispatch(backToTheShow(ownProps.filter))
+  onBack: () => dispatch(backToTheIndex(ownProps.filter)),
+  onSelectKouho: blockType => dispatch(selectKouho(blockType)),
 })
 
 export default connect(

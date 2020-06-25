@@ -1,5 +1,6 @@
 import { connect } from 'react-redux'
-import { startGame, showGame } from '../actions'
+import { showGame } from '../actions'
+import { startGame } from '../actions/game'
 import GameIndexComponent from '../components/GameIndexComponent'
 
 const mapStateToProps = (state, ownProps) => ({
@@ -7,7 +8,7 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onStart: () => dispatch(startGame(ownProps.filter)),
+  onStart: () => dispatch(startGame()),
   onShowGame: index => dispatch(showGame(index))
 })
 

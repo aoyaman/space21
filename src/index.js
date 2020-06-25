@@ -2,14 +2,16 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import AppContainer from './containers/AppContainer';
-import GameShowComponent from './components/GameShowComponent';
 import * as serviceWorker from './serviceWorker';
 import { Provider } from 'react-redux'
-import { createStore } from 'redux'
+import { createStore, applyMiddleware } from 'redux'
 import rootReducer from './reducers'
-import { BrowserRouter as Router, Route } from 'react-router-dom'
+import thunk from 'redux-thunk'
+import logger from 'redux-logger'
 
-const store = createStore(rootReducer)
+const middlewares = [thunk, logger];
+
+const store = createStore(rootReducer, applyMiddleware(...middlewares))
 
 ReactDOM.render(
   <React.StrictMode>
