@@ -1,16 +1,12 @@
 
-const initialState = {
-  nexts: [],
-  list: [],
-  blockType: -1,
-  angle: 0,
-  flip: 0,
-}
+const initialState = [];
 
 const kouho = (state = initialState, action) => {
   switch (action.type) {
+    case 'START_GAME':
+      return [];
     case 'SELECT_KOUHO':
-      return Object.assign({}, state, {blockType: action.blockType, nexts: action.nexts, list: action.list})
+      return JSON.parse(JSON.stringify(action.list));
     default:
       return state
   }

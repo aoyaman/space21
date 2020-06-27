@@ -5,11 +5,10 @@
 
 
 // ゲーム開始
-export const startGame = () => (dispatch, getState) => {
-  const state = getState();
+export const startGame = () => (dispatch) => {
   dispatch({
     type: 'START_GAME',
-    game: makeNewGame(state.games.length + 1)
+    game: makeNewGame()
   });
 }
 
@@ -17,43 +16,48 @@ export const startGame = () => (dispatch, getState) => {
 // 候補を選択する
 export const selectKouho = blockType => (dispatch, getState) => {
   var list = [];
-  const state = getState();
+  const {game, player, board, kouho} = getState();
 
-  const game = state.games[state.app.selectedGame > 0 ? state.app.selectedGame : state.games.length - 1];
+  var angleDefault = 0;
+  var flipDefault = false;
 
-  var blocks = JSON.parse(JSON.stringify(game.playersInfo[game.nowPlayer].blocks));
-  blocks[blockType].color = "FFFFFF";
-  var nexts = makeNexts(blocks);
+  var blocks = JSON.parse(JSON.stringify(player[game.nowPlayer].blocks));
+  blocks[blockType].color = COLOR_SELECT;
+  var tegoma = makeNexts(blocks);
 
   // 置ける場所の候補リスト
-  for (var y = 0; y < game.cells.length; y++) {
-    for (var x = 0; x < game.cells[y].length; x++) {
-      if (checkBlock(blockType, x, y, game.cells, 0, state.kouho.angle, state.kouho.flip)) {
+  for (var y = 0; y < board.length; y++) {
+    for (var x = 0; x < board[y].length; x++) {
+      if (checkBlock(blockType, x, y, board, 0, angleDefault, flipDefault)) {
 
         // 候補用の色を取得
-        var color = "FFFFFF";
+        var color = COLOR_SELECT;
 
         // ここに置いた場合の絵を書く
-        var cells2 = JSON.parse(JSON.stringify(game.cells));
-        drawBlock(blockType, x, y, cells2, color, state.kouho.angle, state.kouho.flip);
+        var cells2 = JSON.parse(JSON.stringify(board));
+        drawBlock(blockType, x, y, cells2, color, angleDefault, flipDefault);
 
         // 候補をリストに追加
-        var kouho = {
+        var kouhoItem = {
           x,
           y,
           cells: cells2,
         }
-        list.push(kouho);
+        list.push(kouhoItem);
       }
     }
   }
+
+  var cells = makeCells(5,5);
+  drawBlock(blockType, 0, 0, cells, COLOR_SELECT, 0, false);
 
 
   dispatch({
     type: 'SELECT_KOUHO',
     blockType,
-    nexts,
+    tegoma,
     list,
+    cells,
   });
 }
 
@@ -62,6 +66,11 @@ export const selectKouho = blockType => (dispatch, getState) => {
 // -----------------------------------------------------
 
 const COLOR_DEFAULT = 'd3d3d3';
+const COLOR_RED = 'ff0000';
+const COLOR_BLUE = '0000ff';
+const COLOR_GREEN = '006400';
+const COLOR_YELLOW = 'ffa500';
+const COLOR_SELECT = 'ffb6c1';
 
 const BLOCK_SHAPE = [ [ [ 0, 0 ], [ 0, 1 ], [ 1, 0 ], [ 1, 1 ] ], // 0:四角
   [ [ 0, 0 ] ], // 1:１小竹の
@@ -135,7 +144,7 @@ const makeCells = (w, h) => {
 const makePlayerInfo = () => {
   var players = [];
   var colors = ['赤', '青', '黄', '緑'];
-  var colors2 = ['FF0000', '0000FF', 'FFFF00', '00FF00'];
+  var colors2 = [COLOR_RED, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW];
   for (var i = 0; i < 4; i++) {
 
     var blocks = [];
@@ -150,7 +159,7 @@ const makePlayerInfo = () => {
 
     var player = {
       name: i === 0 ? 'あなた' : 'CPU' + (i),
-      color: colors[i],
+      color: colors2[i],
       blockZansu: 21,
       point: 0,
       pass: false,
@@ -165,10 +174,11 @@ var makeNexts = blocks => {
   var cells = makeCells(23,12);
 
   for (var i = 0; i < blocks.length; i++) {
-    if (blocks[i].isSet == false) {
+    if (blocks[i].isSet === false) {
       drawNextBlock(blocks[i], cells, blocks[i].color)
     }
   }
+  console.log('makeNexts...', cells);
   return cells;
 }
 
@@ -185,17 +195,16 @@ var  drawNextBlock = (block, cells, color) => {
   }
 }
 
-var makeNewGame = id => {
+var makeNewGame = () => {
   var game = {
-    id,
     date: new Date(),
     nowPlayer: 0,
     cells: makeCells(20, 20),
-    playersInfo: makePlayerInfo(),
+    players: makePlayerInfo(),
     isLoginUserNow: true,
     nowPlayerName: 'あなた',
   }
-  game.nexts = makeNexts(game.playersInfo[game.nowPlayer].blocks)
+  game.tegoma = makeNexts(game.players[game.nowPlayer].blocks)
   return game;
 }
 /**
@@ -261,8 +270,8 @@ var checkBlock = (index, x, y, cells, color, angle, flip) => {
     }
 
     // 四角を踏んでてらOK
-    if ((newX == 0 && newY == 0) || (newX == 0 && newY == cells[newY].length - 1)
-        || (newX == cells.length - 1 && newY == 0) || (newX == cells.length - 1 && newY == cells[newY].length - 1)) {
+    if ((newX === 0 && newY === 0) || (newX === 0 && newY === cells[newY].length - 1)
+        || (newX === cells.length - 1 && newY === 0) || (newX === cells.length - 1 && newY === cells[newY].length - 1)) {
       isCheck = true;
     }
   }
@@ -297,11 +306,11 @@ var drawBlock2 = (block, x, y, cells, color) => {
  * @return 90度回転、もしくは反転したブロックの形
  */
 var calcBlockShape = (oldShape, angle, flip) => {
-  if (angle == 0 && flip == false) {
+  if (angle === 0 && flip === false) {
     return oldShape;
   }
-  var cells = new String[5][5];
-  var cells2 = new String[5][5];
+  var cells = makeCells(5, 5);
+  var cells2 = makeCells(5, 5);
 
   // まず、左上を始点として角度なしで描く
   drawBlock(oldShape, 0, 0, cells, "ZZZ");
@@ -317,31 +326,26 @@ var calcBlockShape = (oldShape, angle, flip) => {
 
 
     // cells2 -> cells
-    for (var x = 0; x < 5; x++) {
-      cells[x] = cells2[x].clone();
-    }
-
+    cells = JSON.parse(JSON.stringify(cells2));
   }
 
   // 反転flgがあれば、反転させる
   if (flip) {
-    for (var x = 0; x < 5; x++) {
-      for (var y = 0; y < 5; y++) {
+    for (let x = 0; x < 5; x++) {
+      for (let y = 0; y < 5; y++) {
         cells2[y][x] = cells[y][4 - x];
       }
     }
-      // cells2 -> cells
-      for (var x = 0; x < 5; x++) {
-      cells[x] = cells2[x].clone();
-    }
+    // cells2 -> cells
+    cells = JSON.parse(JSON.stringify(cells2));
   }
 
   var shape = [];
 
   // ZZZ が入っている座標だけを抜き出す
-  for (var y = 0; y < 5; y++) {
-    for (var x = 0; x < 5; x++) {
-      if (cells2[y][x] != null && cells2[y][x] === "ZZZ") {
+  for (let y = 0; y < 5; y++) {
+    for (let x = 0; x < 5; x++) {
+      if (cells2[y][x].color != null && cells2[y][x].color === "ZZZ") {
         var temp = [x, y];
         shape.push(temp);
       }

@@ -1,22 +1,15 @@
 
 const initialState = {
-  page: "index",
-  selectedGame: -1,
+  page: "start",
 }
 
 const app = (state = initialState, action) => {
   switch (action.type) {
     case 'START_GAME':
-      return Object.assign({}, state, {page: "show", selectedGame: -1})
-    case 'BACK_TO_THE_INDEX':
-      return Object.assign({}, state, {page: "index", selectedGame: -1})
-    case 'BACK_TO_THE_SHOW':
-      return Object.assign({}, state, {page: "show"})
-    case 'SHOW_GAME':
-      return Object.assign({}, state, {page: "show", selectedGame: action.index})
+      return Object.assign({}, state, {page: "game"});
 
-    case 'SELECT_KOUHO':
-      return Object.assign({}, state, {page: "kouho"})
+    case 'END_GAME':
+      return Object.assign({}, state, {page: "start"});
     default:
       return state
   }
