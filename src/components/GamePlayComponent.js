@@ -8,6 +8,7 @@ import Box from "@material-ui/core/Box";
 import PersonIcon from "@material-ui/icons/Person";
 import Container from "@material-ui/core/Container";
 import Paper from "@material-ui/core/Paper";
+import Button from "@material-ui/core/Button";
 
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -35,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart }) => {
+const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide }) => {
   const classes = useStyles();
 
   return (
@@ -143,8 +144,8 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
                             <td
                               style={{
                                 backgroundColor: "#" + cell.color,
-                                width: "20px",
-                                height: "20px",
+                                width: "15px",
+                                height: "15px",
                                 border: "1px solid black",
                               }}
                               key={"selct_cells_x" + x + "y" + y}
@@ -162,35 +163,40 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
 
           {/* 候補 */}
           {select.cells.length > 0 && kouho.map((kouhoItem, index) => (
-            <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
-              <p>候補{index+1}</p>
-              <table className={classes.celltable}>
-                <tbody>
-                  {kouhoItem.cells.map((row, y) => {
-                    return (
-                      <tr key={"y:" + y}>
-                        {row.map((cell, x) => {
-                          return (
-                            <td
-                              style={{
-                                backgroundColor: "#" + cell.color,
-                                width: "20px",
-                                height: "20px",
-                                border: "1px solid black",
-                              }}
-                              onClick={() => {
-                                onSelectKouho(cell.blockType);
-                              }}
-                              key={"x" + x + "y" + y}
-                            ></td>
-                          );
-                        })}
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </Paper>
+              <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
+                <p>候補{index+1}</p>
+                <table className={classes.celltable}>
+                  <tbody>
+                    {kouhoItem.cells.map((row, y) => {
+                      return (
+                        <tr key={"y:" + y}>
+                          {row.map((cell, x) => {
+                            return (
+                              <td
+                                style={{
+                                  backgroundColor: "#" + cell.color,
+                                  width: "15px",
+                                  height: "15px",
+                                  border: "1px solid black",
+                                }}
+                                onClick={() => {
+                                  onSelectKouho(cell.blockType);
+                                }}
+                                key={"x" + x + "y" + y}
+                              ></td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+                <Box m={1}>
+                  <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem); }} >
+                    この候補に決定
+                  </Button>
+                </Box>
+              </Paper>
           ))}
 
           <div>
@@ -215,6 +221,7 @@ GamePlayComponent.propTypes = {
   onBack: PropTypes.func.isRequired,
   onSelectKouho: PropTypes.func.isRequired,
   onRestart: PropTypes.func.isRequired,
+  onDecide: PropTypes.func.isRequired,
 };
 
 export default GamePlayComponent;
