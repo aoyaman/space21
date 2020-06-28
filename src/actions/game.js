@@ -61,7 +61,30 @@ export const selectKouho = blockType => (dispatch, getState) => {
   });
 }
 
+// 右に回転する
+export const rotateSpace = () => (dispatch, getState) => {
+  const {select, board} = getState();
+  var angle = select.angle + 1;
+  if (angle >= 4) {
+    angle = 0;
+  }
+  dispatch(makeKouho(board, select.blockType, angle, select.flip));
+}
 
+
+// 左右反転する
+export const flipSpace = () => (dispatch, getState) => {
+  const {select, board} = getState();
+  var flip = !select.flip;
+  dispatch(makeKouho(board, select.blockType, select.angle, flip));
+}
+
+// 決定する
+export const decideSpace = (blockType, angle, flip, x, y) => (dispatch, getState) => {
+  dispatch({
+    type: 'DECIDE_SPACE',
+  });
+}
 
 // -----------------------------------------------------
 
@@ -70,7 +93,7 @@ const COLOR_RED = 'ff0000';
 const COLOR_BLUE = '0000ff';
 const COLOR_GREEN = '006400';
 const COLOR_YELLOW = 'ffa500';
-const COLOR_SELECT = 'ffb6c1';
+const COLOR_SELECT = 'ff7f50'; // coral
 
 const BLOCK_SHAPE = [ [ [ 0, 0 ], [ 0, 1 ], [ 1, 0 ], [ 1, 1 ] ], // 0:四角
   [ [ 0, 0 ] ], // 1:１小竹の
@@ -216,7 +239,7 @@ var makeNewGame = () => {
  */
 var checkBlock = (index, x, y, cells, color, angle, flip) => {
   var block = BLOCK_SHAPE[index];
-  block = calcBlockShape(block, angle, flip);
+  block = calcBlockShape(index, block, angle, flip);
   var isCheck = false;
 
   for (var i = 0; i < block.length; i++) {
@@ -287,7 +310,7 @@ var checkBlock = (index, x, y, cells, color, angle, flip) => {
  */
 var drawBlock = (index, x, y, cells, color, angle, flip) => {
   var block = BLOCK_SHAPE[index];
-  block = calcBlockShape(block, angle, flip);
+  block = calcBlockShape(index, block, angle, flip);
 
   drawBlock2(index, block, x, y, cells, color);
 }
@@ -311,7 +334,7 @@ var drawBlock2 = (blockType, block, x, y, cells, color) => {
  * @param flip 反転するかどうか
  * @return 90度回転、もしくは反転したブロックの形
  */
-var calcBlockShape = (oldShape, angle, flip) => {
+var calcBlockShape = (blockType, oldShape, angle, flip) => {
   if (angle === 0 && flip === false) {
     return oldShape;
   }
@@ -319,7 +342,7 @@ var calcBlockShape = (oldShape, angle, flip) => {
   var cells2 = makeCells(5, 5);
 
   // まず、左上を始点として角度なしで描く
-  drawBlock(oldShape, 0, 0, cells, "ZZZ");
+  drawBlock2(blockType, oldShape, 0, 0, cells, "ZZZ");
 
   for (var a = 0; a < angle; a++) {
     // 90度回転
@@ -380,4 +403,51 @@ var calcBlockShape = (oldShape, angle, flip) => {
 
 
   return shape;
+}
+
+const makeKouho = (board, blockType, angle, flip) => {
+  var list = [];
+
+  console.log('makeKouho()...', blockType, angle, flip);
+
+  // var blocks = JSON.parse(JSON.stringify(player[game.nowPlayer].blocks));
+  // blocks[blockType].color = COLOR_SELECT;
+  // var tegoma = makeNexts(blocks);
+
+
+  // 置ける場所の候補リスト
+  for (var y = 0; y < board.length; y++) {
+    for (var x = 0; x < board[y].length; x++) {
+      if (checkBlock(blockType, x, y, board, 0, angle, flip)) {
+
+        // 候補用の色を取得
+        var color = COLOR_SELECT;
+
+        // ここに置いた場合の絵を書く
+        var cells2 = JSON.parse(JSON.stringify(board));
+        drawBlock(blockType, x, y, cells2, color, angle, flip);
+
+        // 候補をリストに追加
+        var kouhoItem = {
+          x,
+          y,
+          cells: cells2,
+        }
+        list.push(kouhoItem);
+      }
+    }
+  }
+
+  var cells = makeCells(5,5);
+  drawBlock(blockType, 0, 0, cells, COLOR_SELECT, angle, flip);
+
+
+  return {
+    type: 'SELECT_KOUHO',
+    blockType,
+    list,
+    cells,
+    angle,
+    flip
+  };
 }

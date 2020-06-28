@@ -11,7 +11,12 @@ const select = (state = initialState, action) => {
     case 'START_GAME':
       return Object.assign({}, initialState);
     case 'SELECT_KOUHO':
-      return Object.assign({}, state, {blockType: action.blockType, angle: 0, flip: false, cells: JSON.parse(JSON.stringify(action.cells))})
+      return Object.assign({}, state, {
+        blockType: action.blockType,
+        angle: action.angle,
+        flip: action.flip,
+        cells: JSON.parse(JSON.stringify(action.cells))
+      })
     default:
       return state
   }

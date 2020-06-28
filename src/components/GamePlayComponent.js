@@ -7,7 +7,7 @@ import GamePlayPhoneComponent from "./GamePlayPhoneComponent";
 import GamePlayPcComponent from "./GamePlayPcComponent";
 
 
-const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide }) => {
+const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
 
   return (
     <React.Fragment>
@@ -24,6 +24,8 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
           onSelectKouho={onSelectKouho}
           onRestart={onRestart}
           onDecide={onDecide}
+          onRotate={onRotate}
+          onFlip={onFlip}
           />
       </MediaQuery>
 
@@ -38,6 +40,8 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
             onSelectKouho={onSelectKouho}
             onRestart={onRestart}
             onDecide={onDecide}
+            onRotate={onRotate}
+            onFlip={onFlip}
             />
       </MediaQuery>
 
@@ -50,12 +54,13 @@ GamePlayComponent.propTypes = {
   board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
   players: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
   tegoma: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
-  kouho: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
+  kouho: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
   select: PropTypes.shape({}).isRequired,
-  onBack: PropTypes.func.isRequired,
   onSelectKouho: PropTypes.func.isRequired,
   onRestart: PropTypes.func.isRequired,
   onDecide: PropTypes.func.isRequired,
+  onRotate: PropTypes.func.isRequired,
+  onFlip: PropTypes.func.isRequired,
 };
 
 export default GamePlayComponent;

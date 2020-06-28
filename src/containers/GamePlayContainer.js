@@ -1,6 +1,5 @@
 import { connect } from 'react-redux'
-import { backToTheIndex } from '../actions'
-import { selectKouho, startGame } from '../actions/game'
+import { selectKouho, startGame, rotateSpace, flipSpace, decideSpace } from '../actions/game'
 import GamePlayComponent from '../components/GamePlayComponent'
 
 const mapStateToProps = (state, ownProps) => ({
@@ -13,9 +12,11 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onBack: () => dispatch(backToTheIndex(ownProps.filter)),
   onSelectKouho: blockType => dispatch(selectKouho(blockType)),
   onRestart: blockType => dispatch(startGame()),
+  onRotate: () => dispatch(rotateSpace()),
+  onFlip: () => dispatch(flipSpace()),
+  onDecide: (blockType, angle, flip, x, y) => dispatch(decideSpace(blockType, angle, flip, x, y)),
 })
 
 export default connect(
