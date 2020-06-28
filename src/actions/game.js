@@ -108,21 +108,25 @@ const NEXT_POSITIONS = [
   [ 12, 0 ], // 「の３個
   [ 15, 2 ], // 「の４個
   [ 17, 0 ], // ３連続
-  [ 20, 2 ], // 半分卍(４個)
+  // [ 20, 2 ], // 半分卍(４個)
+  [ 0, 15 ], // 半分卍(４個)
 
   [ 0, 6 ], // 寝てるやつ
   [ 5, 5 ], // 逆T(長い方)
   [ 9, 5 ], // L(５個)
   [ 13, 6 ], // 半分卍(４個)
-  [ 18, 5 ], // Z
-  [ 22, 5 ], // ５連続
+  // [ 18, 5 ], // Z
+  // [ 22, 5 ], // ５連続
+  [ 5, 15 ], // Z
+  [ 10, 15 ], // ５連続
 
   [ 0, 9 ], // 下半身太
   [ 3, 9 ], // Wみたいなの
   [ 7, 9 ], // コの逆
   [ 11, 9 ], // 手裏剣風
   [ 15, 9 ], // 十字架
-  [ 19, 10 ], // トンファー
+  // [ 19, 10 ], // トンファー
+  [ 16, 15 ], // トンファー
 ];
 
 const makeCells = (w, h) => {
@@ -133,6 +137,7 @@ const makeCells = (w, h) => {
       var cell = {
         color: COLOR_DEFAULT,
         blockType: -1,
+        isSet: false,
       }
       row.push(cell);
     }
@@ -171,7 +176,7 @@ const makePlayerInfo = () => {
 }
 
 var makeNexts = blocks => {
-  var cells = makeCells(23,12);
+  var cells = makeCells(20,20);
 
   for (var i = 0; i < blocks.length; i++) {
     if (blocks[i].isSet === false) {
@@ -285,14 +290,16 @@ var drawBlock = (index, x, y, cells, color, angle, flip) => {
   var block = BLOCK_SHAPE[index];
   block = calcBlockShape(block, angle, flip);
 
-  drawBlock2(block, x, y, cells, color);
+  drawBlock2(index, block, x, y, cells, color);
 }
 
-var drawBlock2 = (block, x, y, cells, color) => {
+var drawBlock2 = (blockType, block, x, y, cells, color) => {
   for (var i = 0; i < block.length; i++) {
     var x2 = block[i][0];
     var y2 = block[i][1];
     cells[y + y2][x + x2].color = color;
+    cells[y + y2][x + x2].blockType = blockType;
+    cells[y + y2][x + x2].isSet = true;
   }
 }
 
