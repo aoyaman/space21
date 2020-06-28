@@ -9,6 +9,7 @@ import { makeStyles } from "@material-ui/core/styles";
 
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
+import SelectedSpaceComponent from "./SelectedSpaceComponent";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -31,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide }) => {
+const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
   const classes = useStyles();
 
   return (
@@ -54,34 +55,12 @@ const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, o
 
         {/* 選択したスペース  */}
         { select.cells.length > 0 &&
+          <div>
           <Paper className={classes.paper} elevation={3}>
-            <table className={classes.celltable}>
-              <p>選択したスペース</p>
-              <tbody>
-                {select.cells && select.cells.map((row, y) => {
-                  return (
-                    <tr key={"selct_cells_y:" + y}>
-                      {row.map((cell, x) => {
-                        return (
-                          <td
-                            style={{
-                              backgroundColor: "#" + cell.color,
-                              width: "15px",
-                              height: "15px",
-                              border: "1px solid black",
-                            }}
-                            key={"selct_cells_x" + x + "y" + y}
-                          ></td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <SelectedSpaceComponent select={select} onRotate={onRotate} onFlip={onFlip}/>
           </Paper>
+          </div>
         }
-
 
         {/* 候補 */}
         {select.cells.length > 0 && kouho.map((kouhoItem, index) => (
@@ -117,6 +96,8 @@ GamePlayPhoneComponent.propTypes = {
   onSelectKouho: PropTypes.func.isRequired,
   onRestart: PropTypes.func.isRequired,
   onDecide: PropTypes.func.isRequired,
+  onRotate: PropTypes.func.isRequired,
+  onFlip: PropTypes.func.isRequired,
 };
 
 export default GamePlayPhoneComponent;
