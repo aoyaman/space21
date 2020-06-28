@@ -43,7 +43,7 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
     <React.Fragment>
       <Container maxWidth="sm">
         {/* ヘッダー部分 */}
-        <AppBar position="static" style={{ backgroundColor: "#d3d3d3", color: "black" }}>
+        <AppBar position="static" color="transparent">
           <Toolbar>
             <GameMenuComponent onRestart={onRestart} className={classes.menuButton} />
 
@@ -51,7 +51,7 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
               Space21
             </Typography>
 
-            <Box bgcolor="#d3d3d3" borderRadius="5px" p={1}>
+            <Box borderRadius="5px" p={1}>
               {players.map((player) => (
                 <Box
                   key={player.color}
