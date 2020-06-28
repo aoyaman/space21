@@ -30,15 +30,15 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GameBoardComponent = ({ board, onSelect }) => {
+const GameBoardComponent = ({ board, onSelect, width }) => {
   const classes = useStyles();
 
   return (
     <div
       className={classes.root}
       style={{
-        width: "80vw",
-        height: (4 * board.length) + "vw",
+        width: width ? width + "px":  "80vw",
+        height: width ? width + "px" :  "80vw",
       }}>
       {board.map((row, y) => (
         <React.Fragment key={"y:" + y}>
@@ -48,10 +48,10 @@ const GameBoardComponent = ({ board, onSelect }) => {
                 className={classes.cell}
                 style={{
                   backgroundColor: "#" + cell.color,
-                  width: (80 / row.length) + "vw",
-                  height: (80 / row.length) + "vw",
-                  maxWidth: (BOARD_MAX_WIDTH / row.length)  + "px",
-                  maxHeight: (BOARD_MAX_WIDTH / row.length)  + "px",
+                  width: width ? (width/20) + "px" :  "4vw",
+                  height: width ? (width/20)  + "px" :  "4vw",
+                  maxWidth: width ? (width/20)  + "px" : (BOARD_MAX_WIDTH / row.length)  + "px",
+                  maxHeight: width ? (width/20)  + "px" : (BOARD_MAX_WIDTH / row.length)  + "px",
                 }}
                 onClick={() => {if (cell.blockType >= 0 && onSelect) onSelect(cell.blockType)}}
                 key={"x" + x + "y" + y}
@@ -67,6 +67,7 @@ const GameBoardComponent = ({ board, onSelect }) => {
 GameBoardComponent.propTypes = {
   board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
   onSelect: PropTypes.func,
+  width: PropTypes.number,
 };
 
 export default GameBoardComponent;

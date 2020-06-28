@@ -1,119 +1,47 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import Typography from "@material-ui/core/Typography";
-import Box from "@material-ui/core/Box";
-import PersonIcon from "@material-ui/icons/Person";
-import Container from "@material-ui/core/Container";
-import Paper from "@material-ui/core/Paper";
-import Button from "@material-ui/core/Button";
 import MediaQuery from "react-responsive";
 
-import { makeStyles } from "@material-ui/core/styles";
+import GamePlayPhoneComponent from "./GamePlayPhoneComponent";
+import GamePlayPcComponent from "./GamePlayPcComponent";
 
-import GameMenuComponent from "./GameMenuComponent";
-import FrameComponent from "./FrameComponent";
-import GameHeaderComponent from "./GameHeaderComponent";
-import GameBoardComponent from "./GameBoardComponent";
-import CellComponent from "./CellComponent";
-import kouho from "../reducers/kouho";
-
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-  },
-  menuButton: {
-    marginRight: theme.spacing(2),
-  },
-  title: {
-    flexGrow: 1,
-  },
-  paper: {
-    padding: theme.spacing(1),
-    marginBottom: "10px",
-    textAlign: "center",
-  },
-  celltable: {
-    display: 'inline-block',
-    verticalAlign: 'top',
-  }
-}));
 
 const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide }) => {
-  const classes = useStyles();
 
   return (
-    <FrameComponent>
+    <React.Fragment>
 
-      {/* ヘッダー部分 */}
-      <GameHeaderComponent players={players} onRestart={onRestart} />
+      {/* スマホ用レイアウト */}
+      <MediaQuery query="(max-width: 480px)">
+        <GamePlayPhoneComponent
+          game={game}
+          board={board}
+          players={players}
+          tegoma={tegoma}
+          kouho={kouho}
+          select={select}
+          onSelectKouho={onSelectKouho}
+          onRestart={onRestart}
+          onDecide={onDecide}
+          />
+      </MediaQuery>
 
-      {/* コンテンツ部分 */}
-      <Box m={2}>
-        {/* ゲーム版　*/}
-        <Paper className={classes.paper} elevation={3}>
-          <GameBoardComponent board={board}/>
-        </Paper>
+      <MediaQuery query="(min-width: 481px)">
+          <GamePlayPcComponent
+            game={game}
+            board={board}
+            players={players}
+            tegoma={tegoma}
+            kouho={kouho}
+            select={select}
+            onSelectKouho={onSelectKouho}
+            onRestart={onRestart}
+            onDecide={onDecide}
+            />
+      </MediaQuery>
 
-        {/* 手持ちのスペース */}
-        <Paper className={classes.paper} elevation={3}>
-          <GameBoardComponent board={tegoma} onSelect={onSelectKouho}/>
-        </Paper>
-
-        {/* 選択したスペース  */}
-        { select.cells.length > 0 &&
-          <Paper className={classes.paper} elevation={3}>
-            <table className={classes.celltable}>
-              <p>選択したスペース</p>
-              <tbody>
-                {select.cells && select.cells.map((row, y) => {
-                  return (
-                    <tr key={"selct_cells_y:" + y}>
-                      {row.map((cell, x) => {
-                        return (
-                          <td
-                            style={{
-                              backgroundColor: "#" + cell.color,
-                              width: "15px",
-                              height: "15px",
-                              border: "1px solid black",
-                            }}
-                            key={"selct_cells_x" + x + "y" + y}
-                          ></td>
-                        );
-                      })}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </Paper>
-        }
-
-
-        {/* 候補 */}
-        {select.cells.length > 0 && kouho.map((kouhoItem, index) => (
-            <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
-              <p>候補{index+1}</p>
-              <GameBoardComponent board={kouhoItem.cells}/>
-              <Box m={1}>
-                <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem); }} >
-                  この候補に決定
-                </Button>
-              </Box>
-            </Paper>
-        ))}
-
-        <div>
-          {/* メッセージ */}
-          {game.isLoginUserNow && <p>あなたの番です。置きたいブロックを選択してください。</p>}
-          {game.isLoginUserNow === false && <p>「{game.nowPlayerName}」の番です。お待ちください。</p>}
-        </div>
-
-      </Box>
-    </FrameComponent>
+    </React.Fragment>
   );
 };
 

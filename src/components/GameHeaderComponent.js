@@ -19,41 +19,49 @@ const useStyles = makeStyles((theme) => ({
   title: {
     flexGrow: 1,
   },
+  toolbar: {
+    height: '10px',
+  },
 }));
 
 const GameHeaderComponent = ({ players, onRestart }) => {
   const classes = useStyles();
 
   return (
-    <AppBar position="static" color="transparent">
-      <Toolbar>
-        <GameMenuComponent onRestart={onRestart} className={classes.menuButton} />
+    <React.Fragment>
+      <AppBar position="relative" color="transparent">
+        <Toolbar>
+          <GameMenuComponent onRestart={onRestart} className={classes.menuButton} />
 
-        <Typography variant="h6" className={classes.title}>
-          <MediaQuery query="(min-width: 768px)">
-            Space21
-          </MediaQuery>
-        </Typography>
+          <Typography variant="h6" className={classes.title}>
+            <MediaQuery query="(min-width: 768px)">
+              Space21
+            </MediaQuery>
+          </Typography>
 
-        <Box borderRadius="5px" p={1}>
-          {players.map((player) => (
-            <Box
-              key={player.color}
-              component="span"
-              color={"#" + player.color}
-              border="1px solid"
-              borderColor={"#" + player.color}
-              borderRadius="5px"
-              m={1}
-              p={1}
-            >
-              <PersonIcon />
-              {player.point}
-            </Box>
-          ))}
-        </Box>
-      </Toolbar>
-    </AppBar>
+          <Box borderRadius="5px" p={1}>
+            {players.map((player) => (
+              <Box
+                key={player.color}
+                component="span"
+                color={"#" + player.color}
+                border="1px solid"
+                borderColor={"#" + player.color}
+                borderRadius="5px"
+                m={1}
+                p={1}
+              >
+                <PersonIcon />
+                {player.point}
+              </Box>
+            ))}
+          </Box>
+        </Toolbar>
+      </AppBar>
+
+      {/* AppBarと下のコンテンツが重ならないように余白を開ける */}
+      <div className={classes.toolbar} />
+    </React.Fragment>
   );
 };
 

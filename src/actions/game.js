@@ -16,7 +16,7 @@ export const startGame = () => (dispatch) => {
 // 候補を選択する
 export const selectKouho = blockType => (dispatch, getState) => {
   var list = [];
-  const {game, player, board, kouho} = getState();
+  const {game, player, board} = getState();
 
   var angleDefault = 0;
   var flipDefault = false;
@@ -148,7 +148,6 @@ const makeCells = (w, h) => {
 
 const makePlayerInfo = () => {
   var players = [];
-  var colors = ['赤', '青', '黄', '緑'];
   var colors2 = [COLOR_RED, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW];
   for (var i = 0; i < 4; i++) {
 
