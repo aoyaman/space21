@@ -25,6 +25,8 @@ const board = (state = initialState, action) => {
   switch (action.type) {
     case 'START_GAME':
       return  JSON.parse(JSON.stringify(action.game.cells));
+    case 'DECIDE_SPACE':
+      return  JSON.parse(JSON.stringify(action.board));
     default:
       return state
   }

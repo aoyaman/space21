@@ -68,7 +68,7 @@ const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, o
               <p>候補{index+1}</p>
               <GameBoardComponent board={kouhoItem.cells}/>
               <Box m={1}>
-                <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem); }} >
+                <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem.x, kouhoItem.y); }} >
                   この候補に決定
                 </Button>
               </Box>

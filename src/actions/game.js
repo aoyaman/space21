@@ -21,14 +21,14 @@ export const selectKouho = blockType => (dispatch, getState) => {
   var angleDefault = 0;
   var flipDefault = false;
 
-  var blocks = JSON.parse(JSON.stringify(player[game.nowPlayer].blocks));
+  var blocks = JSON.parse(JSON.stringify(player[game.loginPlayer].blocks));
   blocks[blockType].color = COLOR_SELECT;
   var tegoma = makeNexts(blocks);
 
   // 置ける場所の候補リスト
   for (var y = 0; y < board.length; y++) {
     for (var x = 0; x < board[y].length; x++) {
-      if (checkBlock(blockType, x, y, board, 0, angleDefault, flipDefault)) {
+      if (checkBlock(blockType, x, y, board, player[game.loginPlayer].color, angleDefault, flipDefault)) {
 
         // 候補用の色を取得
         var color = COLOR_SELECT;
@@ -58,31 +58,64 @@ export const selectKouho = blockType => (dispatch, getState) => {
     tegoma,
     list,
     cells,
+    angle: angleDefault,
+    flip: flipDefault,
   });
 }
 
 // 右に回転する
 export const rotateSpace = () => (dispatch, getState) => {
-  const {select, board} = getState();
+  const {select, board, player, game} = getState();
   var angle = select.angle + 1;
   if (angle >= 4) {
     angle = 0;
   }
-  dispatch(makeKouho(board, select.blockType, angle, select.flip));
+  dispatch(makeKouho(board, select.blockType, player[game.loginPlayer].color, angle, select.flip));
 }
 
 
 // 左右反転する
 export const flipSpace = () => (dispatch, getState) => {
-  const {select, board} = getState();
+  const {select, board, player, game} = getState();
   var flip = !select.flip;
-  dispatch(makeKouho(board, select.blockType, select.angle, flip));
+  dispatch(makeKouho(board, select.blockType, player[game.loginPlayer].color, select.angle, flip));
 }
 
 // 決定する
-export const decideSpace = (blockType, angle, flip, x, y) => (dispatch, getState) => {
+export const decideSpace = (x, y) => (dispatch, getState) => {
+  const { game, select, board, player } = getState();
+
+  var p = player[game.nowPlayer];
+  var block = p.blocks[select.blockType];
+  block.x = x;
+  block.y = y;
+  block.angle = select.angle;
+  block.flip = select.flip;
+  block.isSet = true;
+  console.log('decideSpace()... change block', block);
+
+  // ボードにスペースを書き込む
+  drawBlock(select.blockType, x, y, board, p.color, select.angle, select.flip);
+
+  // ポイントを追加
+  p.point += BLOCK_SHAPE[select.blockType].length;
+  p.blockZansu--;
+
+  var tegoma = makeNexts(p.blocks);
+
+  // 次のプレイヤー
+  var nextPlayer = game.nowPlayer + 1;
+  if (nextPlayer >= 4) {
+    nextPlayer = 0;
+  }
+
   dispatch({
     type: 'DECIDE_SPACE',
+    board,
+    nowPlayer: game.nowPlayer,
+    nextPlayer,
+    player,
+    tegoma
   });
 }
 
@@ -93,7 +126,7 @@ const COLOR_RED = 'ff0000';
 const COLOR_BLUE = '0000ff';
 const COLOR_GREEN = '006400';
 const COLOR_YELLOW = 'ffa500';
-const COLOR_SELECT = 'ff7f50'; // coral
+const COLOR_SELECT = 'c71585'; // mediumvioletred
 
 const BLOCK_SHAPE = [ [ [ 0, 0 ], [ 0, 1 ], [ 1, 0 ], [ 1, 1 ] ], // 0:四角
   [ [ 0, 0 ] ], // 1:１小竹の
@@ -190,7 +223,7 @@ const makePlayerInfo = () => {
       blockZansu: 21,
       point: 0,
       pass: false,
-      blocks
+      blocks,
     }
     players.push(player);
   }
@@ -226,6 +259,7 @@ var makeNewGame = () => {
   var game = {
     date: new Date(),
     nowPlayer: 0,
+    loginPlayer: 0,
     cells: makeCells(20, 20),
     players: makePlayerInfo(),
     isLoginUserNow: true,
@@ -405,10 +439,10 @@ var calcBlockShape = (blockType, oldShape, angle, flip) => {
   return shape;
 }
 
-const makeKouho = (board, blockType, angle, flip) => {
+const makeKouho = (board, blockType, color, angle, flip) => {
   var list = [];
 
-  console.log('makeKouho()...', blockType, angle, flip);
+  console.log('makeKouho()...', blockType, color, angle, flip);
 
   // var blocks = JSON.parse(JSON.stringify(player[game.nowPlayer].blocks));
   // blocks[blockType].color = COLOR_SELECT;
@@ -418,14 +452,14 @@ const makeKouho = (board, blockType, angle, flip) => {
   // 置ける場所の候補リスト
   for (var y = 0; y < board.length; y++) {
     for (var x = 0; x < board[y].length; x++) {
-      if (checkBlock(blockType, x, y, board, 0, angle, flip)) {
+      if (checkBlock(blockType, x, y, board, color, angle, flip)) {
 
         // 候補用の色を取得
-        var color = COLOR_SELECT;
+        var selectedColor = COLOR_SELECT;
 
         // ここに置いた場合の絵を書く
         var cells2 = JSON.parse(JSON.stringify(board));
-        drawBlock(blockType, x, y, cells2, color, angle, flip);
+        drawBlock(blockType, x, y, cells2, selectedColor, angle, flip);
 
         // 候補をリストに追加
         var kouhoItem = {

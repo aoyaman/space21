@@ -79,11 +79,13 @@ const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSe
             <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
               <p>候補{index+1}</p>
               <GameBoardComponent board={kouhoItem.cells} width={180} />
-              <Box m={1}>
-                <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem); }} >
-                  この候補に決定
-                </Button>
-              </Box>
+              {game.nowPlayer == game.loginPlayer &&
+                <Box m={1}>
+                  <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem.x, kouhoItem.y); }} >
+                    この候補に決定
+                  </Button>
+                </Box>
+              }
             </Paper>
           ))}
         </div>

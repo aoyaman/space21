@@ -27,6 +27,8 @@ const player = (state = initialState, action) => {
   switch (action.type) {
     case 'START_GAME':
       return  JSON.parse(JSON.stringify(action.game.players));
+    case 'DECIDE_SPACE':
+      return  JSON.parse(JSON.stringify(action.player));
     default:
       return state
   }

@@ -8,9 +8,9 @@ const initialState = {
 
 /**
  * games reducer
- * 
- * @param {} state 
- * @param {*} action 
+ *
+ * @param {} state
+ * @param {*} action
  */
 const game = (state = initialState, action) => {
   switch (action.type) {
@@ -19,6 +19,12 @@ const game = (state = initialState, action) => {
         id: 1,
         date: action.game.date,
         nowPlayer: action.game.nowPlayer,
+        loginPlayer: action.game.loginPlayer,
+      });
+
+    case 'DECIDE_SPACE':
+      return Object.assign({}, state, {
+        nowPlayer: action.nextPlayer,
       });
     default:
       return state

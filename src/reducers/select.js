@@ -17,6 +17,8 @@ const select = (state = initialState, action) => {
         flip: action.flip,
         cells: JSON.parse(JSON.stringify(action.cells))
       })
+    case 'DECIDE_SPACE':
+      return Object.assign({}, initialState);
     default:
       return state
   }

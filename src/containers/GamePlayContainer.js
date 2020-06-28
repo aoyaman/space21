@@ -16,7 +16,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onRestart: blockType => dispatch(startGame()),
   onRotate: () => dispatch(rotateSpace()),
   onFlip: () => dispatch(flipSpace()),
-  onDecide: (blockType, angle, flip, x, y) => dispatch(decideSpace(blockType, angle, flip, x, y)),
+  onDecide: (x, y) => dispatch(decideSpace(x, y)),
 })
 
 export default connect(
