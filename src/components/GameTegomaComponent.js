@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GameBoardComponent = ({ board, onSelect, width }) => {
+const GameTegomaComponent = ({ board, onSelect, width }) => {
   const classes = useStyles();
 
   return (
@@ -38,7 +38,7 @@ const GameBoardComponent = ({ board, onSelect, width }) => {
       className={classes.root}
       style={{
         width: width ? width + "px":  "80vw",
-        height: width ? width + "px" :  "80vm",
+        height: width ? (width / 80 * 56) + "px" :  "56vw",
       }}>
       {board.map((row, y) => (
         <React.Fragment key={"y:" + y}>
@@ -64,10 +64,10 @@ const GameBoardComponent = ({ board, onSelect, width }) => {
   );
 };
 
-GameBoardComponent.propTypes = {
+GameTegomaComponent.propTypes = {
   board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
-  onSelect: PropTypes.func,
+  onSelect: PropTypes.func.isRequired,
   width: PropTypes.number,
 };
 
-export default GameBoardComponent;
+export default GameTegomaComponent;

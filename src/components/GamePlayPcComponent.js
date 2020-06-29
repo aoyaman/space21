@@ -12,6 +12,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
 import SelectedSpaceComponent from "./SelectedSpaceComponent";
+import GameTegomaComponent from "./GameTegomaComponent";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -60,7 +61,7 @@ const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSe
 
           {/* 手持ちのスペース */}
           <Paper className={classes.paper} elevation={3}>
-            <GameBoardComponent board={tegoma} onSelect={onSelectKouho} width={300} />
+            <GameTegomaComponent board={tegoma} onSelect={onSelectKouho} width={300} />
           </Paper>
 
         </div>
