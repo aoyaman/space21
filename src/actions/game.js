@@ -122,13 +122,11 @@ export const decideSpace = (x, y) => (dispatch, getState) => {
     tegoma
   });
 
-  if (nextPlayer >= 1) {
-    // ２秒待つ
-    const timeoutId = setTimeout(() => {
-      clearTimeout(timeoutId);
-      funcCpu(dispatch, getState);
-    }, 2000);
-  }
+  // ２秒待つ
+  const timeoutId = setTimeout(() => {
+    clearTimeout(timeoutId);
+    funcCpu(dispatch, getState);
+  }, CPU_TIMER_MSEC);
 }
 
 
@@ -149,13 +147,11 @@ export const decidePass = () => (dispatch, getState) => {
     player,
   });
 
-  if (nextPlayer >= 1) {
-    // ２秒待つ
-    const timeoutId = setTimeout(() => {
-      clearTimeout(timeoutId);
-      funcCpu(dispatch, getState);
-    }, 2000);
-  }
+  // ２秒待つ
+  const timeoutId = setTimeout(() => {
+    clearTimeout(timeoutId);
+    funcCpu(dispatch, getState);
+  }, CPU_TIMER_MSEC);
 }
 
 // CPUの順番スタート
@@ -165,12 +161,12 @@ export const waitCpu = () => (dispatch, getState) => {
   const timeoutId = setTimeout(() => {
     clearTimeout(timeoutId);
     funcCpu(dispatch, getState);
-  }, 2000);
+  }, CPU_TIMER_MSEC);
 }
 // -----------------------------------------------------
 
 const COLOR_DEFAULT = 'd3d3d3';
-const COLOR_RED = 'ff0000';
+const COLOR_RED = 'FF3366';
 const COLOR_BLUE = '0000ff';
 const COLOR_GREEN = '006400';
 const COLOR_YELLOW = 'ffa500';
@@ -232,6 +228,8 @@ const NEXT_POSITIONS = [
   // [ 19, 10 ], // トンファー
   [ 16, 10 ], // トンファー
 ];
+
+const CPU_TIMER_MSEC = 3000;
 
 const makeCells = (w, h) => {
   var cells  = [];
@@ -535,9 +533,15 @@ const makeKouho = (board, blockType, color, angle, flip) => {
 }
 
 const funcCpu = (dispatch, getState) => {
-  console.log('CPU START');
 
   const {board, player, game} = getState();
+
+  // ゲーム終了している場合は何もしない
+  if (game.nowPlayer < 0) {
+    return;
+  }
+  console.log('CPU START');
+
 
   var p = player[game.nowPlayer];
 
@@ -567,39 +571,47 @@ const funcCpu = (dispatch, getState) => {
           for (i = 0; i < 2; i++) {
             // チェック
             if (checkBlock(space.type, x, y, board, p.color, angle, (i === 1))) {
-              var block = p.blocks[space.type];
-              block.x = x;
-              block.y = y;
-              block.angle = angle;
-              block.flip = i === 1;
-              block.isSet = true;
-              console.log('decideSpace()... change block', block);
+              // CPUの場合
+              if (game.nowPlayer !== game.loginPlayer) {
+                var block = p.blocks[space.type];
+                block.x = x;
+                block.y = y;
+                block.angle = angle;
+                block.flip = i === 1;
+                block.isSet = true;
+                console.log('decideSpace()... change block', block);
 
-              // ボードにスペースを書き込む
-              drawBlock(space.type, x, y, board, p.color, block.angle, block.flip);
+                // ボードにスペースを書き込む
+                drawBlock(space.type, x, y, board, p.color, block.angle, block.flip);
 
-              // ポイントを追加
-              p.point += BLOCK_SHAPE[space.type].length;
-              p.blockZansu--;
+                // ポイントを追加
+                p.point += BLOCK_SHAPE[space.type].length;
+                p.blockZansu--;
 
-              // 次のプレイヤー
-              nextPlayer = calcNextPlayer(game, player);
+                // 次のプレイヤー
+                nextPlayer = calcNextPlayer(game, player);
 
-              dispatch({
-                type: 'CPU_PUT',
-                board,
-                nowPlayer: game.nowPlayer,
-                nextPlayer,
-                player,
-              });
+                dispatch({
+                  type: 'CPU_PUT',
+                  board,
+                  nowPlayer: game.nowPlayer,
+                  nextPlayer,
+                  player,
+                });
+              } else {
+                console.log('login user is not pass');
+                return;
+              }
               console.log('CPU END');
 
-              if (nextPlayer >= 1) {
+              if (nextPlayer === game.loginUser) {
+                funcCpu(dispatch, getState);
+              } else {
                 // ２秒待つ
                 const timeoutId = setTimeout(() => {
                   clearTimeout(timeoutId);
                   funcCpu(dispatch, getState);
-                }, 2000);
+                }, CPU_TIMER_MSEC);
               }
               return;
             }
@@ -624,12 +636,14 @@ const funcCpu = (dispatch, getState) => {
   });
   console.log('CPU END2');
 
-  if (nextPlayer >= 1) {
+  if (nextPlayer === game.loginUser) {
+    funcCpu(dispatch, getState);
+  } else {
     // ２秒待つ
     const timeoutId = setTimeout(() => {
       clearTimeout(timeoutId);
       funcCpu(dispatch, getState);
-    }, 2000);
+    }, CPU_TIMER_MSEC);
   }
 };
 

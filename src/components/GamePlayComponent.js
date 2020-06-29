@@ -45,6 +45,7 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
             onDecide={onDecide}
             onRotate={onRotate}
             onFlip={onFlip}
+            waitCpu={waitCpu}
             decidePass={decidePass}
             />
       </MediaQuery>

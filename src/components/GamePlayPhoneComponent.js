@@ -80,13 +80,13 @@ const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, o
         {/* 候補 */}
         {select.cells.length > 0 && kouho.map((kouhoItem, index) => (
             <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
-              <p>候補{index+1}</p>
-              <GameBoardComponent board={kouhoItem.cells}/>
+
               <Box m={1}>
                 <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem.x, kouhoItem.y); }} >
                   この候補に決定
                 </Button>
               </Box>
+              <GameBoardComponent board={kouhoItem.cells}/>
             </Paper>
         ))}
 

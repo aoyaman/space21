@@ -29,7 +29,7 @@ const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePas
   const classes = useStyles();
 
   const drawPoint = (index, point) => {
-    if (index === nowPlayer && index != 0) {
+    if (index === nowPlayer && index !== 0) {
       return <React.Fragment><CircularProgress size="1.3em" color="inherit" onClick={waitCpu} /></React.Fragment>;
     }
     return <React.Fragment>{point}</React.Fragment>;
@@ -49,13 +49,13 @@ const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePas
 
           <Box >
             {players.map((player, index) => (
-              <React.Fragment>
+              <React.Fragment key={player.color}>
                 <MediaQuery query="(max-width: 480px)">
                   <Box
-                    key={player.color}
+
                     component="span"
-                    color={"#" + (index == nowPlayer ? "ffffff" : player.color)}
-                    bgcolor={"#" + (index != nowPlayer ? "ffffff" : player.color)}
+                    color={"#" + (index === nowPlayer ? "ffffff" : player.color)}
+                    bgcolor={"#" + (index !== nowPlayer ? (player.pass === true ? "dddddd" : "ffffff") : player.color)}
                     border="1px solid"
                     borderColor={"#" + player.color}
                     borderRadius="5px"
@@ -69,10 +69,9 @@ const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePas
                 </MediaQuery>
                 <MediaQuery query="(min-width: 481px)">
                   <Box
-                    key={player.color}
                     component="span"
-                    color={"#" + (index == nowPlayer ? "ffffff" : player.color)}
-                    bgcolor={"#" + (index != nowPlayer ? "ffffff" : player.color)}
+                    color={"#" + (index === nowPlayer ? "ffffff" : player.color)}
+                    bgcolor={"#" + (index !== nowPlayer ? (player.pass === true ? "dddddd" : "ffffff") : player.color)}
                     border="1px solid"
                     borderColor={"#" + player.color}
                     borderRadius="5px"
