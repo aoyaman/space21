@@ -47,5 +47,6 @@
     "husky": "^4.2.5",
     "lint-staged": "^10.2.11",
     "prettier": "^2.0.5"
-  }
+  },
+  "homepage": "https://space21-5d803.firebaseapp.com/"
 }
