@@ -36,7 +36,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
+const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass }) => {
   const classes = useStyles();
 
   return (
@@ -47,9 +47,11 @@ const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSe
 
 
         {/* ヘッダー部分 */}
-        <GameHeaderComponent players={players} onRestart={onRestart} />
+        <GameHeaderComponent players={players} nowPlayer={game.nowPlayer} onRestart={onRestart} waitCpu={waitCpu} decidePass={decidePass} />
 
         <div>
+
+          {game.nowPlayer === -1 && <div><h2>ゲーム終了です！</h2><Button variant="contained"  color="secondary" onClick={onRestart}>もう一度ゲームをする</Button></div>}
 
           {/* ゲーム版　*/}
           <Paper className={classes.paper} elevation={3}>
@@ -79,7 +81,7 @@ const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSe
             <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
               <p>候補{index+1}</p>
               <GameBoardComponent board={kouhoItem.cells} width={180} />
-              {game.nowPlayer == game.loginPlayer &&
+              {game.nowPlayer === game.loginPlayer &&
                 <Box m={1}>
                   <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem.x, kouhoItem.y); }} >
                     この候補に決定
@@ -113,6 +115,8 @@ GamePlayPcComponent.propTypes = {
   onDecide: PropTypes.func.isRequired,
   onRotate: PropTypes.func.isRequired,
   onFlip: PropTypes.func.isRequired,
+  waitCpu: PropTypes.func.isRequired,
+  decidePass: PropTypes.func.isRequired,
 };
 
 export default GamePlayPcComponent;

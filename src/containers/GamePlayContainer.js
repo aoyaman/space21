@@ -1,5 +1,5 @@
 import { connect } from 'react-redux'
-import { selectKouho, startGame, rotateSpace, flipSpace, decideSpace } from '../actions/game'
+import { selectKouho, startGame, rotateSpace, flipSpace, decideSpace, waitCpu, decidePass } from '../actions/game'
 import GamePlayComponent from '../components/GamePlayComponent'
 
 const mapStateToProps = (state, ownProps) => ({
@@ -17,6 +17,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   onRotate: () => dispatch(rotateSpace()),
   onFlip: () => dispatch(flipSpace()),
   onDecide: (x, y) => dispatch(decideSpace(x, y)),
+  waitCpu: () => dispatch(waitCpu()),
+  decidePass: () => dispatch(decidePass()),
 })
 
 export default connect(

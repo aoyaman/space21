@@ -104,10 +104,7 @@ export const decideSpace = (x, y) => (dispatch, getState) => {
   var tegoma = makeNexts(p.blocks);
 
   // 次のプレイヤー
-  var nextPlayer = game.nowPlayer + 1;
-  if (nextPlayer >= 4) {
-    nextPlayer = 0;
-  }
+  var nextPlayer = calcNextPlayer(game, player);
 
   dispatch({
     type: 'DECIDE_SPACE',
@@ -117,8 +114,52 @@ export const decideSpace = (x, y) => (dispatch, getState) => {
     player,
     tegoma
   });
+
+  if (nextPlayer >= 1) {
+    // ２秒待つ
+    const timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
+      funcCpu(dispatch, getState);
+    }, 2000);
+  }
 }
 
+
+// パスする
+export const decidePass = () => (dispatch, getState) => {
+  const { game, player } = getState();
+
+  var p = player[game.nowPlayer];
+  p.pass = true;
+
+  // 次のプレイヤー
+  var nextPlayer = calcNextPlayer(game, player);
+
+  dispatch({
+    type: 'DECIDE_PASS',
+    nowPlayer: game.nowPlayer,
+    nextPlayer,
+    player,
+  });
+
+  if (nextPlayer >= 1) {
+    // ２秒待つ
+    const timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
+      funcCpu(dispatch, getState);
+    }, 2000);
+  }
+}
+
+// CPUの順番スタート
+export const waitCpu = () => (dispatch, getState) => {
+
+  // ２秒待つ
+  const timeoutId = setTimeout(() => {
+    clearTimeout(timeoutId);
+    funcCpu(dispatch, getState);
+  }, 2000);
+}
 // -----------------------------------------------------
 
 const COLOR_DEFAULT = 'd3d3d3';
@@ -485,3 +526,118 @@ const makeKouho = (board, blockType, color, angle, flip) => {
     flip
   };
 }
+
+const funcCpu = (dispatch, getState) => {
+  console.log('CPU START');
+
+  const {board, player, game} = getState();
+
+  var p = player[game.nowPlayer];
+
+  // セットしていないスペースのリストを作る
+  var notSetSpaces = [];
+  for (var i = 0; i < p.blocks.length; i++) {
+    if (p.blocks[i].isSet === false) {
+      notSetSpaces.push(p.blocks[i]);
+    }
+  }
+
+  // ブロック数が多い順に並べる
+  notSetSpaces.sort((a, b) => {
+    return BLOCK_SHAPE[b.type].length - BLOCK_SHAPE[a.type].length;
+  });
+
+  var nextPlayer = -1;
+
+  for (var b = 0; b < notSetSpaces.length; b++) {
+    var space = notSetSpaces[b];
+    // 全部のセルをチェックしていく
+    for (var y = 0; y < board.length; y++) {
+      for (var x = 0; x < board[y].length; x++) {
+
+        // 回転させてチェックする
+        for (var angle = 0; angle < 4; angle++) {
+          for (i = 0; i < 2; i++) {
+            // チェック
+            if (checkBlock(space.type, x, y, board, p.color, angle, (i === 1))) {
+              var block = p.blocks[space.type];
+              block.x = x;
+              block.y = y;
+              block.angle = angle;
+              block.flip = i === 1;
+              block.isSet = true;
+              console.log('decideSpace()... change block', block);
+
+              // ボードにスペースを書き込む
+              drawBlock(space.type, x, y, board, p.color, block.angle, block.flip);
+
+              // ポイントを追加
+              p.point += BLOCK_SHAPE[space.type].length;
+              p.blockZansu--;
+
+              // 次のプレイヤー
+              nextPlayer = calcNextPlayer(game, player);
+
+              dispatch({
+                type: 'CPU_PUT',
+                board,
+                nowPlayer: game.nowPlayer,
+                nextPlayer,
+                player,
+              });
+              console.log('CPU END');
+
+              if (nextPlayer >= 1) {
+                // ２秒待つ
+                const timeoutId = setTimeout(() => {
+                  clearTimeout(timeoutId);
+                  funcCpu(dispatch, getState);
+                }, 2000);
+              }
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // パス
+  p.pass = true;
+
+  // 次のプレイヤー
+  nextPlayer = calcNextPlayer(game, player);
+
+  dispatch({
+    type: 'CPU_PUT',
+    board,
+    nowPlayer: game.nowPlayer,
+    nextPlayer,
+    player,
+  });
+  console.log('CPU END2');
+
+  if (nextPlayer >= 1) {
+    // ２秒待つ
+    const timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
+      funcCpu(dispatch, getState);
+    }, 2000);
+  }
+};
+
+const calcNextPlayer = (game, players) => {
+
+  var next = game.nowPlayer;
+  for (var i = 0; i < players.length; i++) {
+    next++;
+    if (next >= 4) {
+      next = 0;
+    }
+    if (players[next].pass === false) {
+      return next;
+    }
+
+  }
+  return -1;
+};

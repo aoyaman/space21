@@ -3,6 +3,7 @@ const initialState = {
   id: null,
   date: null,
   nowPlayer: 0,
+  loginPlayer: 0,
 }
 
 
@@ -23,6 +24,8 @@ const game = (state = initialState, action) => {
       });
 
     case 'DECIDE_SPACE':
+    case 'CPU_PUT':
+    case 'DECIDE_PASS':
       return Object.assign({}, state, {
         nowPlayer: action.nextPlayer,
       });

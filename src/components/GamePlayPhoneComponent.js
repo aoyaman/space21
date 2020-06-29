@@ -32,17 +32,20 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
+const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass }) => {
   const classes = useStyles();
 
   return (
     <React.Fragment>
 
       {/* ヘッダー部分 */}
-      <GameHeaderComponent players={players} onRestart={onRestart} />
+      <GameHeaderComponent players={players} nowPlayer={game.nowPlayer}  onRestart={onRestart} waitCpu={waitCpu} decidePass={decidePass} />
 
       {/* コンテンツ部分 */}
       <Box m={2}>
+
+        {game.nowPlayer === -1 && <div><h2>ゲーム終了です！</h2><Button variant="contained"  color="secondary" onClick={onRestart}>もう一度ゲームをする</Button></div>}
+
         {/* ゲーム版　*/}
         <Paper className={classes.paper} elevation={3}>
           <GameBoardComponent board={board}/>
@@ -98,6 +101,8 @@ GamePlayPhoneComponent.propTypes = {
   onDecide: PropTypes.func.isRequired,
   onRotate: PropTypes.func.isRequired,
   onFlip: PropTypes.func.isRequired,
+  waitCpu: PropTypes.func.isRequired,
+  decidePass: PropTypes.func.isRequired,
 };
 
 export default GamePlayPhoneComponent;

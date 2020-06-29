@@ -26,6 +26,7 @@ const board = (state = initialState, action) => {
     case 'START_GAME':
       return  JSON.parse(JSON.stringify(action.game.cells));
     case 'DECIDE_SPACE':
+    case 'CPU_PUT':
       return  JSON.parse(JSON.stringify(action.board));
     default:
       return state

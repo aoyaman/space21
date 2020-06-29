@@ -7,7 +7,7 @@ import GamePlayPhoneComponent from "./GamePlayPhoneComponent";
 import GamePlayPcComponent from "./GamePlayPcComponent";
 
 
-const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
+const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass }) => {
 
   return (
     <React.Fragment>
@@ -26,6 +26,8 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
           onDecide={onDecide}
           onRotate={onRotate}
           onFlip={onFlip}
+          waitCpu={waitCpu}
+          decidePass={decidePass}
           />
       </MediaQuery>
 
@@ -42,6 +44,7 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
             onDecide={onDecide}
             onRotate={onRotate}
             onFlip={onFlip}
+            decidePass={decidePass}
             />
       </MediaQuery>
 
@@ -61,6 +64,8 @@ GamePlayComponent.propTypes = {
   onDecide: PropTypes.func.isRequired,
   onRotate: PropTypes.func.isRequired,
   onFlip: PropTypes.func.isRequired,
+  waitCpu: PropTypes.func.isRequired,
+  decidePass: PropTypes.func.isRequired,
 };
 
 export default GamePlayComponent;

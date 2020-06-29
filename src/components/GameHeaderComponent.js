@@ -7,6 +7,7 @@ import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import PersonIcon from "@material-ui/icons/Person";
 import MediaQuery from "react-responsive";
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -24,14 +25,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const GameHeaderComponent = ({ players, onRestart }) => {
+const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePass }) => {
   const classes = useStyles();
+
+  const drawPoint = (index, point) => {
+    if (index === nowPlayer) {
+      return <React.Fragment><CircularProgress size="1.3em" onClick={waitCpu} /></React.Fragment>;
+    }
+    return <React.Fragment>{point}</React.Fragment>;
+  }
 
   return (
     <React.Fragment>
       <AppBar position="relative" color="transparent">
         <Toolbar>
-          <GameMenuComponent onRestart={onRestart} className={classes.menuButton} />
+          <GameMenuComponent onRestart={onRestart} decidePass={decidePass} className={classes.menuButton} />
 
           <Typography variant="h6" className={classes.title}>
             <MediaQuery query="(min-width: 768px)">
@@ -40,7 +48,7 @@ const GameHeaderComponent = ({ players, onRestart }) => {
           </Typography>
 
           <Box borderRadius="5px" p={1}>
-            {players.map((player) => (
+            {players.map((player, index) => (
               <Box
                 key={player.color}
                 component="span"
@@ -52,7 +60,7 @@ const GameHeaderComponent = ({ players, onRestart }) => {
                 p={1}
               >
                 <PersonIcon />
-                {player.point}
+                {drawPoint(index, player.point)}
               </Box>
             ))}
           </Box>
@@ -67,7 +75,10 @@ const GameHeaderComponent = ({ players, onRestart }) => {
 
 GameHeaderComponent.propTypes = {
   players: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
+  nowPlayer: PropTypes.number.isRequired,
   onRestart: PropTypes.func.isRequired,
+  waitCpu: PropTypes.func.isRequired,
+  decidePass: PropTypes.func.isRequired,
 };
 
 export default GameHeaderComponent;

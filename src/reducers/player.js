@@ -28,6 +28,8 @@ const player = (state = initialState, action) => {
     case 'START_GAME':
       return  JSON.parse(JSON.stringify(action.game.players));
     case 'DECIDE_SPACE':
+    case 'CPU_PUT':
+    case 'DECIDE_PASS':
       return  JSON.parse(JSON.stringify(action.player));
     default:
       return state

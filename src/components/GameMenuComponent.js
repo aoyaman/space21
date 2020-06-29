@@ -6,7 +6,7 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import MenuIcon from '@material-ui/icons/Menu';
 
-const GameMenuComponent = ({onRestart}) => {
+const GameMenuComponent = ({onRestart, decidePass}) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
 
   const handleClick = (event) => {
@@ -24,6 +24,7 @@ const GameMenuComponent = ({onRestart}) => {
       </IconButton>
 
       <Menu id="simple-menu" anchorEl={anchorEl} keepMounted open={Boolean(anchorEl)} onClose={handleClose}>
+        <MenuItem onClick={() => { handleClose(); decidePass();}}>Pass</MenuItem>
         <MenuItem onClick={() => { handleClose(); onRestart();}}>Restart</MenuItem>
       </Menu>
     </React.Fragment>
@@ -32,6 +33,7 @@ const GameMenuComponent = ({onRestart}) => {
 
 GameMenuComponent.propTypes = {
     onRestart: PropTypes.func.isRequired,
+    decidePass: PropTypes.func.isRequired,
   };
 
 export default GameMenuComponent;
