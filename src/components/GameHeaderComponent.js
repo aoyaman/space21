@@ -29,8 +29,8 @@ const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePas
   const classes = useStyles();
 
   const drawPoint = (index, point) => {
-    if (index === nowPlayer) {
-      return <React.Fragment><CircularProgress size="1.3em" onClick={waitCpu} /></React.Fragment>;
+    if (index === nowPlayer && index != 0) {
+      return <React.Fragment><CircularProgress size="1.3em" color="inherit" onClick={waitCpu} /></React.Fragment>;
     }
     return <React.Fragment>{point}</React.Fragment>;
   }
@@ -47,21 +47,44 @@ const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePas
             </MediaQuery>
           </Typography>
 
-          <Box borderRadius="5px" p={1}>
+          <Box >
             {players.map((player, index) => (
-              <Box
-                key={player.color}
-                component="span"
-                color={"#" + player.color}
-                border="1px solid"
-                borderColor={"#" + player.color}
-                borderRadius="5px"
-                m={1}
-                p={1}
-              >
-                <PersonIcon />
-                {drawPoint(index, player.point)}
-              </Box>
+              <React.Fragment>
+                <MediaQuery query="(max-width: 480px)">
+                  <Box
+                    key={player.color}
+                    component="span"
+                    color={"#" + (index == nowPlayer ? "ffffff" : player.color)}
+                    bgcolor={"#" + (index != nowPlayer ? "ffffff" : player.color)}
+                    border="1px solid"
+                    borderColor={"#" + player.color}
+                    borderRadius="5px"
+                    fontSize="small"
+                    margin="5px"
+                    padding="5px"
+                  >
+                    <PersonIcon />
+                    {drawPoint(index, player.point)}
+                  </Box>
+                </MediaQuery>
+                <MediaQuery query="(min-width: 481px)">
+                  <Box
+                    key={player.color}
+                    component="span"
+                    color={"#" + (index == nowPlayer ? "ffffff" : player.color)}
+                    bgcolor={"#" + (index != nowPlayer ? "ffffff" : player.color)}
+                    border="1px solid"
+                    borderColor={"#" + player.color}
+                    borderRadius="5px"
+                    m={1}
+                    p={1}
+                  >
+                    <PersonIcon />
+                    {drawPoint(index, player.point)}
+                  </Box>
+                </MediaQuery>
+
+              </React.Fragment>
             ))}
           </Box>
         </Toolbar>
