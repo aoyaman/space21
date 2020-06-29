@@ -32,7 +32,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass }) => {
+const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass, onNotSelect }) => {
   const classes = useStyles();
 
   return (
@@ -42,26 +42,37 @@ const GamePlayPhoneComponent = ({ game, board, players, tegoma, kouho, select, o
       <GameHeaderComponent players={players} nowPlayer={game.nowPlayer}  onRestart={onRestart} waitCpu={waitCpu} decidePass={decidePass} />
 
       {/* コンテンツ部分 */}
-      <Box m={2}>
+      <Box m={1}>
 
         {game.nowPlayer === -1 && <div><h2>ゲーム終了です！</h2><Button variant="contained"  color="secondary" onClick={onRestart}>もう一度ゲームをする</Button></div>}
 
         {/* ゲーム版　*/}
-        <Paper className={classes.paper} elevation={3}>
-          <GameBoardComponent board={board}/>
-        </Paper>
+        {select.cells.length <= 0 &&
+          <Paper className={classes.paper} elevation={3}>
+            <GameBoardComponent board={board}/>
+          </Paper>
+        }
 
         {/* 手持ちのスペース */}
-        <Paper className={classes.paper} elevation={3}>
-          <GameBoardComponent board={tegoma} onSelect={onSelectKouho}/>
-        </Paper>
+        {select.cells.length <= 0 &&
+          <Paper className={classes.paper} elevation={3}>
+            <GameBoardComponent board={tegoma} onSelect={onSelectKouho}/>
+          </Paper>
+        }
+
+        {/* 候補の表示をやめる  */}
+        { select.cells.length > 0 &&
+          <Box p={1}>
+            <Button variant="contained"  color="primary" onClick={onNotSelect}>戻る</Button>
+          </Box >
+        }
 
         {/* 選択したスペース  */}
         { select.cells.length > 0 &&
           <div>
-          <Paper className={classes.paper} elevation={3}>
-            <SelectedSpaceComponent select={select} onRotate={onRotate} onFlip={onFlip}/>
-          </Paper>
+            <Paper className={classes.paper} elevation={3}>
+              <SelectedSpaceComponent select={select} onRotate={onRotate} onFlip={onFlip}/>
+            </Paper>
           </div>
         }
 
@@ -103,6 +114,7 @@ GamePlayPhoneComponent.propTypes = {
   onFlip: PropTypes.func.isRequired,
   waitCpu: PropTypes.func.isRequired,
   decidePass: PropTypes.func.isRequired,
+  onNotSelect: PropTypes.func.isRequired,
 };
 
 export default GamePlayPhoneComponent;

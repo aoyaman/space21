@@ -8,6 +8,7 @@ const kouho = (state = initialState, action) => {
     case 'SELECT_KOUHO':
       return JSON.parse(JSON.stringify(action.list));
     case 'DECIDE_SPACE':
+    case 'NOT_SELECT_KOUHO':
       return [];
     default:
       return state

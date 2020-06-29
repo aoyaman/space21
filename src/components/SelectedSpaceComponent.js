@@ -9,14 +9,14 @@ const useStyles = makeStyles((theme) => ({
     display: 'inline-block',
     verticalAlign: 'top',
   },
+  buttonGroup: {
+    display: "inline-block",
+    verticalAlign: 'top',
+  },
   rotateButton: {
-    display: "inline-block",
-    margin: "5px",
-  },
-  flipButton: {
-    display: "inline-block",
-    margin: "5px",
-  },
+    marginLeft: '5px',
+    marginBottom: '5px',
+  }
 }));
 
 const SelectedSpaceComponent = ({ select, onRotate, onFlip }) => {
@@ -52,14 +52,20 @@ const SelectedSpaceComponent = ({ select, onRotate, onFlip }) => {
           </tbody>
         </table>
 
-        <Button variant="contained" color="primary" onClick={onRotate} className={classes.rotateButton}>
-          右に回転
-        </Button>
+        <div className={classes.buttonGroup}>
+
+          <Box className={classes.rotateButton}>
+            <Button variant="contained" color="primary" onClick={onRotate} >
+              右に回転
+            </Button>
+          </Box>
 
 
-        <Button variant="contained" color="primary" onClick={onFlip} className={classes.flipButton}>
-          左右反転
-        </Button>
+          <Button variant="contained" color="primary" onClick={onFlip} className={classes.flipButton}>
+            左右反転
+          </Button>
+        </div>
+
       </Box>
 
     </React.Fragment>

@@ -63,6 +63,13 @@ export const selectKouho = blockType => (dispatch, getState) => {
   });
 }
 
+// 候補の選択をやめる
+export const notSelect = () => (dispatch, getState) => {
+  dispatch({
+    type: 'NOT_SELECT_KOUHO',
+  });
+}
+
 // 右に回転する
 export const rotateSpace = () => (dispatch, getState) => {
   const {select, board, player, game} = getState();

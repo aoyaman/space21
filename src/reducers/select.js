@@ -18,6 +18,7 @@ const select = (state = initialState, action) => {
         cells: JSON.parse(JSON.stringify(action.cells))
       })
     case 'DECIDE_SPACE':
+    case 'NOT_SELECT_KOUHO':
       return Object.assign({}, initialState);
     default:
       return state
