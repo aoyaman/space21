@@ -9,6 +9,7 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 
 import { makeStyles } from "@material-ui/core/styles";
 
+import { GameState, BoardState, PlayerState, TegomaState, KouhoState, SelectState } from '../entity/store';
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
 import SelectedSpaceComponent from "./SelectedSpaceComponent";
@@ -36,7 +37,22 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
+
+type Props = {
+  game: GameState
+  board: BoardState
+  players: PlayerState
+  tegoma: TegomaState
+  kouho: KouhoState
+  select: SelectState
+  onSelectKouho: (blockType: number) => void
+  onRestart: () => void
+  onDecide: (x: number, y: number) => void
+  onRotate: () => void
+  onFlip: () => void
+};
+
+const GamePlayPcComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
   const classes = useStyles();
 
   return (
@@ -90,29 +106,11 @@ const GamePlayPcComponent = ({ game, board, players, tegoma, kouho, select, onSe
           ))}
         </div>
 
-        <div>
-          {/* メッセージ */}
-          {game.isLoginUserNow && <p>あなたの番です。置きたいブロックを選択してください。</p>}
-          {game.isLoginUserNow === false && <p>「{game.nowPlayerName}」の番です。お待ちください。</p>}
-        </div>
 
       </Container>
     </React.Fragment>
   );
 };
 
-GamePlayPcComponent.propTypes = {
-  game: PropTypes.shape({}).isRequired,
-  board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
-  players: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-  tegoma: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
-  kouho: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-  select: PropTypes.shape({}).isRequired,
-  onSelectKouho: PropTypes.func.isRequired,
-  onRestart: PropTypes.func.isRequired,
-  onDecide: PropTypes.func.isRequired,
-  onRotate: PropTypes.func.isRequired,
-  onFlip: PropTypes.func.isRequired,
-};
 
 export default GamePlayPcComponent;

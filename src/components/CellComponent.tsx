@@ -1,7 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const CellComponent = ({ color }) => (
+type Props = {
+  color: string,
+};
+
+
+const CellComponent: React.FC<Props> = ({ color }) => (
   <div
     style={{
       backgroundColor: color,
@@ -13,9 +18,5 @@ const CellComponent = ({ color }) => (
 
   </div>
 );
-
-CellComponent.propTypes = {
-  color: PropTypes.string.isRequired,
-};
 
 export default CellComponent;

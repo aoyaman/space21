@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -8,13 +7,15 @@ import Box from "@material-ui/core/Box";
 import PersonIcon from "@material-ui/icons/Person";
 import MediaQuery from "react-responsive";
 
-import { makeStyles } from "@material-ui/core/styles";
+import { Theme } from "@material-ui/core";
+import { makeStyles, withStyles, WithStyles, createStyles } from "@material-ui/core/styles";
 
+import { GameState, BoardState, PlayerState, TegomaState, KouhoState, SelectState } from '../entity/store';
 import GameMenuComponent from "./GameMenuComponent";
 
-const useStyles = makeStyles((theme) => ({
+const styles = ({ palette, spacing }: Theme) => createStyles({
   menuButton: {
-    marginRight: theme.spacing(2),
+    marginRight: spacing(2),
   },
   title: {
     flexGrow: 1,
@@ -22,16 +23,20 @@ const useStyles = makeStyles((theme) => ({
   toolbar: {
     height: '10px',
   },
-}));
+});
 
-const GameHeaderComponent = ({ players, onRestart }) => {
-  const classes = useStyles();
+interface Props extends WithStyles<typeof styles> {
+  players: PlayerState
+  onRestart: () => void
+}
+
+const GameHeaderComponent: React.FC<Props> = ({ classes, players, onRestart }) => {
 
   return (
     <React.Fragment>
       <AppBar position="relative" color="transparent">
         <Toolbar>
-          <GameMenuComponent onRestart={onRestart} className={classes.menuButton} />
+          <GameMenuComponent onRestart={onRestart} />
 
           <Typography variant="h6" className={classes.title}>
             <MediaQuery query="(min-width: 768px)">
@@ -65,9 +70,4 @@ const GameHeaderComponent = ({ players, onRestart }) => {
   );
 };
 
-GameHeaderComponent.propTypes = {
-  players: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-  onRestart: PropTypes.func.isRequired,
-};
-
-export default GameHeaderComponent;
+export default withStyles(styles)(GameHeaderComponent);

@@ -1,20 +1,20 @@
+import { START_GAME, DECIDE_SPACE, GameActionTypes } from '../actions';
+import { GameState } from '../entity/store';
 
-const initialState = {
+const initialState: GameState = {
   id: null,
   date: null,
   nowPlayer: 0,
+  loginPlayer: 0
 }
 
 
 /**
- * games reducer
- *
- * @param {} state
- * @param {*} action
+ * ゲーム進行情報のReducer
  */
-const game = (state = initialState, action) => {
+const game = (state = initialState, action: GameActionTypes) => {
   switch (action.type) {
-    case 'START_GAME':
+    case START_GAME:
       return Object.assign({}, state, {
         id: 1,
         date: action.game.date,
@@ -22,7 +22,7 @@ const game = (state = initialState, action) => {
         loginPlayer: action.game.loginPlayer,
       });
 
-    case 'DECIDE_SPACE':
+    case DECIDE_SPACE:
       return Object.assign({}, state, {
         nowPlayer: action.nextPlayer,
       });

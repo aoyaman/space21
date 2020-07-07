@@ -1,27 +1,23 @@
+
+import { SelectKouhoInfo, DecideSpaceInfo } from '../actions';
+import { GameInfo, BoardInfo, CellInfo, PlayerInfo, SpaceInfo, TegomaInfo } from '../entity/game';
+import { GameState, PlayerState } from '../entity/store';
+
 /**
  * ゲームの処理に対するアクション
  */
 
 
 
-// ゲーム開始
-export const startGame = () => (dispatch) => {
-  dispatch({
-    type: 'START_GAME',
-    game: makeNewGame()
-  });
-}
-
 
 // 候補を選択する
-export const selectKouho = blockType => (dispatch, getState) => {
+export const onSelectKouho = (blockType: number, game: GameState, player: PlayerInfo[], board: CellInfo[][]):SelectKouhoInfo => {
   var list = [];
-  const {game, player, board} = getState();
 
   var angleDefault = 0;
   var flipDefault = false;
 
-  var blocks = JSON.parse(JSON.stringify(player[game.loginPlayer].blocks));
+  var blocks: SpaceInfo[] = JSON.parse(JSON.stringify(player[game.loginPlayer].blocks));
   blocks[blockType].color = COLOR_SELECT;
   var tegoma = makeNexts(blocks);
 
@@ -52,71 +48,65 @@ export const selectKouho = blockType => (dispatch, getState) => {
   drawBlock(blockType, 0, 0, cells, COLOR_SELECT, 0, false);
 
 
-  dispatch({
-    type: 'SELECT_KOUHO',
+  return {
     blockType,
     tegoma,
     list,
     cells,
     angle: angleDefault,
     flip: flipDefault,
-  });
+  };
 }
 
 // 右に回転する
-export const rotateSpace = () => (dispatch, getState) => {
-  const {select, board, player, game} = getState();
-  var angle = select.angle + 1;
+export const onRotate = (board: BoardInfo, blockType: number, color: string, angle: number, flip: boolean):SelectKouhoInfo => {
+  var angle = angle + 1;
   if (angle >= 4) {
     angle = 0;
   }
-  dispatch(makeKouho(board, select.blockType, player[game.loginPlayer].color, angle, select.flip));
+  return makeKouho(board, blockType, color, angle, flip);
 }
 
 
 // 左右反転する
-export const flipSpace = () => (dispatch, getState) => {
-  const {select, board, player, game} = getState();
-  var flip = !select.flip;
-  dispatch(makeKouho(board, select.blockType, player[game.loginPlayer].color, select.angle, flip));
+export const onFlip = (board: BoardInfo, blockType: number, color: string, angle: number, flip: boolean):SelectKouhoInfo => {
+  return makeKouho(board, blockType, color, angle, !flip);
 }
 
 // 決定する
-export const decideSpace = (x, y) => (dispatch, getState) => {
-  const { game, select, board, player } = getState();
+export const onDecide = (x: number, y: number, nowPlayer: number, blockType: number, angle: number, flip: boolean, board: BoardInfo, player: PlayerInfo[]):DecideSpaceInfo => {
 
-  var p = player[game.nowPlayer];
-  var block = p.blocks[select.blockType];
+  var p = player[nowPlayer];
+  var block = p.blocks[blockType];
   block.x = x;
   block.y = y;
-  block.angle = select.angle;
-  block.flip = select.flip;
+  block.angle = angle;
+  block.flip = flip;
   block.isSet = true;
   console.log('decideSpace()... change block', block);
 
   // ボードにスペースを書き込む
-  drawBlock(select.blockType, x, y, board, p.color, select.angle, select.flip);
+  drawBlock(blockType, x, y, board, p.color, angle, flip);
 
   // ポイントを追加
-  p.point += BLOCK_SHAPE[select.blockType].length;
+  p.point += BLOCK_SHAPE[blockType].length;
   p.blockZansu--;
 
   var tegoma = makeNexts(p.blocks);
 
   // 次のプレイヤー
-  var nextPlayer = game.nowPlayer + 1;
+  var nextPlayer = nowPlayer + 1;
   if (nextPlayer >= 4) {
     nextPlayer = 0;
   }
 
-  dispatch({
-    type: 'DECIDE_SPACE',
+  return {
     board,
-    nowPlayer: game.nowPlayer,
+    nowPlayer: nowPlayer,
     nextPlayer,
     player,
     tegoma
-  });
+  };
 }
 
 // -----------------------------------------------------
@@ -185,7 +175,7 @@ const NEXT_POSITIONS = [
   [ 16, 15 ], // トンファー
 ];
 
-const makeCells = (w, h) => {
+const makeCells = (w: number, h: number) => {
   var cells  = [];
   for (var y = 0; y < h; y++) {
     var row = [];
@@ -202,22 +192,26 @@ const makeCells = (w, h) => {
   return cells;
 }
 
-const makePlayerInfo = () => {
-  var players = [];
+const makePlayerInfo = (): PlayerInfo[] => {
+  var players: PlayerInfo[] = [];
   var colors2 = [COLOR_RED, COLOR_BLUE, COLOR_GREEN, COLOR_YELLOW];
   for (var i = 0; i < 4; i++) {
 
-    var blocks = [];
+    var blocks: SpaceInfo[] = [];
     for (var b = 0; b < BLOCK_SHAPE.length; b++) {
-      var block = {
+      var block: SpaceInfo = {
         type: b,
         isSet: false,
         color: colors2[i],
+        x: undefined,
+        y: undefined,
+        angle: undefined,
+        flip: undefined,
       }
       blocks.push(block);
     }
 
-    var player = {
+    var player: PlayerInfo = {
       name: i === 0 ? 'あなた' : 'CPU' + (i),
       color: colors2[i],
       blockZansu: 21,
@@ -230,8 +224,8 @@ const makePlayerInfo = () => {
   return players;
 }
 
-var makeNexts = blocks => {
-  var cells = makeCells(20,20);
+var makeNexts = (blocks: SpaceInfo[]): TegomaInfo => {
+  var cells: TegomaInfo = makeCells(20,20);
 
   for (var i = 0; i < blocks.length; i++) {
     if (blocks[i].isSet === false) {
@@ -245,7 +239,7 @@ var makeNexts = blocks => {
 /**
  * ブロック候補の表示
  */
-var  drawNextBlock = (block, cells, color) => {
+var  drawNextBlock = (block: SpaceInfo, cells: TegomaInfo, color: string) => {
   var x = NEXT_POSITIONS[block.type][0];
   var y = NEXT_POSITIONS[block.type][1];
   for (var i = 0; i < BLOCK_SHAPE[block.type].length; i++) {
@@ -255,23 +249,25 @@ var  drawNextBlock = (block, cells, color) => {
   }
 }
 
-var makeNewGame = () => {
-  var game = {
+export const makeNewGame = ():GameInfo => {
+  const players: PlayerInfo[] = makePlayerInfo();
+  const nowPlayer = 0;
+  var game: GameInfo = {
     date: new Date(),
-    nowPlayer: 0,
+    nowPlayer,
     loginPlayer: 0,
     cells: makeCells(20, 20),
-    players: makePlayerInfo(),
+    players,
     isLoginUserNow: true,
     nowPlayerName: 'あなた',
+    tegoma: makeNexts(players[nowPlayer].blocks)
   }
-  game.tegoma = makeNexts(game.players[game.nowPlayer].blocks)
   return game;
 }
 /**
  * ブロックを置けるかどうかのチェック
  */
-var checkBlock = (index, x, y, cells, color, angle, flip) => {
+var checkBlock = (index: number, x: number, y: number, cells: CellInfo[][], color: string, angle: number, flip: boolean) => {
   var block = BLOCK_SHAPE[index];
   block = calcBlockShape(index, block, angle, flip);
   var isCheck = false;
@@ -342,14 +338,14 @@ var checkBlock = (index, x, y, cells, color, angle, flip) => {
 /**
  * ブロックの色表示
  */
-var drawBlock = (index, x, y, cells, color, angle, flip) => {
-  var block = BLOCK_SHAPE[index];
+var drawBlock = (index: number, x: number, y: number, cells: CellInfo[][], color: string, angle: number, flip: boolean) => {
+  var block: number[][] = BLOCK_SHAPE[index];
   block = calcBlockShape(index, block, angle, flip);
 
   drawBlock2(index, block, x, y, cells, color);
 }
 
-var drawBlock2 = (blockType, block, x, y, cells, color) => {
+var drawBlock2 = (blockType: number, block: number[][], x: number, y: number, cells: CellInfo[][], color: string) => {
   for (var i = 0; i < block.length; i++) {
     var x2 = block[i][0];
     var y2 = block[i][1];
@@ -368,7 +364,7 @@ var drawBlock2 = (blockType, block, x, y, cells, color) => {
  * @param flip 反転するかどうか
  * @return 90度回転、もしくは反転したブロックの形
  */
-var calcBlockShape = (blockType, oldShape, angle, flip) => {
+var calcBlockShape = (blockType: number, oldShape: number[][], angle: number, flip: boolean) => {
   if (angle === 0 && flip === false) {
     return oldShape;
   }
@@ -439,7 +435,7 @@ var calcBlockShape = (blockType, oldShape, angle, flip) => {
   return shape;
 }
 
-const makeKouho = (board, blockType, color, angle, flip) => {
+const makeKouho = (board: BoardInfo, blockType: number, color: string, angle: number, flip: boolean): SelectKouhoInfo => {
   var list = [];
 
   console.log('makeKouho()...', blockType, color, angle, flip);
@@ -477,11 +473,11 @@ const makeKouho = (board, blockType, color, angle, flip) => {
 
 
   return {
-    type: 'SELECT_KOUHO',
     blockType,
     list,
     cells,
     angle,
-    flip
+    flip,
+    tegoma: []
   };
 }

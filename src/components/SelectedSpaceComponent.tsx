@@ -4,6 +4,8 @@ import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
 import { makeStyles } from "@material-ui/core/styles";
 
+import { SelectState } from '../entity/store';
+
 const useStyles = makeStyles((theme) => ({
   celltable: {
     display: 'inline-block',
@@ -19,7 +21,14 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const SelectedSpaceComponent = ({ select, onRotate, onFlip }) => {
+
+type Props = {
+  select: SelectState
+  onRotate: () => void
+  onFlip: () => void
+};
+
+const SelectedSpaceComponent: React.FC<Props> = ({ select, onRotate, onFlip }) => {
   const classes = useStyles();
 
   return (
@@ -66,10 +75,5 @@ const SelectedSpaceComponent = ({ select, onRotate, onFlip }) => {
   );
 };
 
-SelectedSpaceComponent.propTypes = {
-  select: PropTypes.shape({}).isRequired,
-  onRotate: PropTypes.func.isRequired,
-  onFlip: PropTypes.func.isRequired,
-};
 
 export default SelectedSpaceComponent;

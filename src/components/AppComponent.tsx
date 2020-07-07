@@ -1,12 +1,14 @@
 import React from 'react'
-import PropTypes from 'prop-types'
 
-
+import { AppState } from '../entity/store';
 import StartContainer from '../containers/StartContainer';
 import GamePlayContainer from '../containers/GamePlayContainer';
 
+type Props = {
+  app: AppState
+}
 
-const AppComponent = ({ app }) => {
+const AppComponent: React.FC<Props> = ({ app }) => {
 
   return (
     <div>
@@ -15,9 +17,5 @@ const AppComponent = ({ app }) => {
     </div>
   );
 };
-
-AppComponent.propTypes = {
-  app: PropTypes.shape({}).isRequired
-}
 
 export default AppComponent
