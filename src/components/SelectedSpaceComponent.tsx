@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
 import { makeStyles } from "@material-ui/core/styles";
@@ -70,7 +69,7 @@ const SelectedSpaceComponent: React.FC<Props> = ({ select, onRotate, onFlip }) =
           </Box>
 
 
-          <Button variant="contained" color="primary" onClick={onFlip} className={classes.flipButton}>
+          <Button variant="contained" color="primary" onClick={onFlip} >
             左右反転
           </Button>
         </div>

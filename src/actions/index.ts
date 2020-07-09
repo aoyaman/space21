@@ -2,7 +2,7 @@
 import { Dispatch } from "redux";
 
 import { GameInfo, CellInfo, PlayerInfo, KouhoInfo, BoardInfo } from '../entity/game';
-import { makeNewGame, onSelectKouho, onRotate, onFlip, onDecide } from './game';
+import { makeNewGame, onSelectKouho, onRotate, onFlip, onDecide, CpuCallback, onPass, onWaitCpu } from './game';
 import { AllState } from '../entity/store';
 
 /**
@@ -31,6 +31,18 @@ interface ActonEndGame {
 }
 
 /**
+ * CPUの手
+ */
+export const CPU_PUT = 'CPU_PUT';
+interface ActionCpuPut {
+  type: typeof CPU_PUT
+  board: BoardInfo
+  nowPlayer: number
+  nextPlayer: number
+  player: PlayerInfo[]
+}
+
+/**
  * 置くスペースを決定
  */
 export const DECIDE_SPACE = 'DECIDE_SPACE';
@@ -46,12 +58,106 @@ interface ActionDecideSpace extends DecideSpaceInfo{
 }
 export const decideSpace = (x: number, y: number) => (dispatch: Dispatch, getState: () => AllState) => {
   const { game, select, board, player } = getState();
-  const result: DecideSpaceInfo = onDecide(x, y, game.nowPlayer, select.blockType, select.angle, select.flip, board, player);
+
+  // CPUの手を受け取るコールバック関数
+  const callback:CpuCallback = (board: BoardInfo, player: PlayerInfo[], nowPlayer: number, nextPlayer: number) => {
+    // Reducerに通知する
+    dispatch({
+      type: 'CPU_PUT',
+      board,
+      nowPlayer,
+      nextPlayer,
+      player,
+    });
+  }
+
+  // 手の決定処理
+  const result: DecideSpaceInfo = onDecide(x, y, game.nowPlayer, game.loginPlayer, select.blockType, select.angle, select.flip, board, player, callback);
+
+  // Reducerに通知
   dispatch({
     type: DECIDE_SPACE,
     ...result,
+  });
+
+}
+
+
+/**
+ * パスする
+ */
+export const DECIDE_PASS = 'DECIDE_PASS';
+export interface DecidePassInfo {
+  nowPlayer: number
+  nextPlayer: number
+  player: PlayerInfo[]
+}
+interface ActionDecidePass extends DecidePassInfo{
+  type: typeof DECIDE_PASS
+}
+export const decidePass = () => (dispatch: Dispatch, getState: () => AllState) => {
+  const { game, player, board } = getState();
+
+  // CPUの手を受け取るコールバック関数
+  const callback:CpuCallback = (board: BoardInfo, player: PlayerInfo[], nowPlayer: number, nextPlayer: number) => {
+    // Reducerに通知する
+    dispatch({
+      type: 'CPU_PUT',
+      board,
+      nowPlayer,
+      nextPlayer,
+      player,
+    });
+  }
+
+  // パスの処理
+  const result: DecidePassInfo = onPass(game.nowPlayer, game.loginPlayer, player, board, callback);
+
+  // Reducerに通知
+  dispatch({
+    type: DECIDE_PASS,
+    ...result,
   })
 }
+
+
+
+/**
+ * CPUの順番どうぞ
+ */
+export const waitCpu = () => (dispatch: Dispatch, getState: () => AllState) => {
+  const { game, player, board } = getState();
+
+  // CPUの手を受け取るコールバック関数
+  const callback:CpuCallback = (board: BoardInfo, player: PlayerInfo[], nowPlayer: number, nextPlayer: number) => {
+    // Reducerに通知する
+    dispatch({
+      type: 'CPU_PUT',
+      board,
+      nowPlayer,
+      nextPlayer,
+      player,
+    });
+  }
+
+  onWaitCpu(game.nowPlayer, game.loginPlayer, player, board, callback);
+}
+
+
+/**
+ * 候補の選択をやめる
+ */
+export const NOT_SELECT_KOUHO = 'NOT_SELECT_KOUHO';
+export interface ActionNotSelectKouho {
+  type: typeof NOT_SELECT_KOUHO
+}
+export const notSelect = () => (dispatch: Dispatch) => {
+  dispatch({
+    type: NOT_SELECT_KOUHO,
+  });
+}
+
+
 
 /**
  * 候補を選択
@@ -105,11 +211,11 @@ export const flipSpace = () => (dispatch: Dispatch, getState: () => AllState) =>
  * 各ReducerのActionTypeを定義
  */
 export type AppActionTypes = ActionStartGame | ActonEndGame;
-export type BoardActionTypes = ActionStartGame | ActionDecideSpace;
-export type GameActionTypes = ActionStartGame | ActionDecideSpace;
-export type KouhoActionTypes = ActionStartGame | ActionDecideSpace | ActionSelectKouho;
-export type PlayerActionTypes = ActionStartGame | ActionDecideSpace;
-export type SelectActionTypes = ActionStartGame | ActionDecideSpace | ActionSelectKouho;
+export type BoardActionTypes = ActionStartGame | ActionDecideSpace | ActionCpuPut;
+export type GameActionTypes = ActionStartGame | ActionDecideSpace | ActionCpuPut | ActionDecidePass;
+export type KouhoActionTypes = ActionStartGame | ActionDecideSpace | ActionSelectKouho | ActionNotSelectKouho;
+export type PlayerActionTypes = ActionStartGame | ActionDecideSpace | ActionCpuPut | ActionDecidePass;
+export type SelectActionTypes = ActionStartGame | ActionDecideSpace | ActionSelectKouho | ActionNotSelectKouho;
 export type TegomaActionTypes = ActionStartGame | ActionDecideSpace;
 
 

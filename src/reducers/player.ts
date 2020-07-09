@@ -1,5 +1,5 @@
 
-import { START_GAME, DECIDE_SPACE, PlayerActionTypes } from '../actions';
+import { START_GAME, DECIDE_SPACE, CPU_PUT, DECIDE_PASS, PlayerActionTypes } from '../actions';
 import { PlayerState } from '../entity/store';
 
 /**
@@ -18,6 +18,8 @@ const player = (state = initialState, action: PlayerActionTypes) => {
     case START_GAME:
       return  JSON.parse(JSON.stringify(action.game.players));
     case DECIDE_SPACE:
+    case CPU_PUT:
+    case DECIDE_PASS:
       return  JSON.parse(JSON.stringify(action.player));
     default:
       return state

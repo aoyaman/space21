@@ -1,4 +1,4 @@
-import { START_GAME, SELECT_KOUHO, DECIDE_SPACE, SelectActionTypes } from '../actions';
+import { START_GAME, SELECT_KOUHO, DECIDE_SPACE, NOT_SELECT_KOUHO, SelectActionTypes } from '../actions';
 import { SelectState } from '../entity/store';
 
 const initialState: SelectState = {
@@ -20,6 +20,7 @@ const select = (state = initialState, action: SelectActionTypes) => {
         cells: JSON.parse(JSON.stringify(action.cells))
       };
     case DECIDE_SPACE:
+    case NOT_SELECT_KOUHO:
       return {...initialState};
     default:
       return state
