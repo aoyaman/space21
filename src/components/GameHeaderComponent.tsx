@@ -6,11 +6,12 @@ import Typography from "@material-ui/core/Typography";
 import Box from "@material-ui/core/Box";
 import PersonIcon from "@material-ui/icons/Person";
 import MediaQuery from "react-responsive";
+import CircularProgress from '@material-ui/core/CircularProgress';
 
 import { Theme } from "@material-ui/core";
-import { makeStyles, withStyles, WithStyles, createStyles } from "@material-ui/core/styles";
+import { withStyles, WithStyles, createStyles } from "@material-ui/core/styles";
 
-import { GameState, BoardState, PlayerState, TegomaState, KouhoState, SelectState } from '../entity/store';
+import { PlayerState } from '../entity/store';
 import GameMenuComponent from "./GameMenuComponent";
 
 const styles = ({ palette, spacing }: Theme) => createStyles({
@@ -27,16 +28,26 @@ const styles = ({ palette, spacing }: Theme) => createStyles({
 
 interface Props extends WithStyles<typeof styles> {
   players: PlayerState
+  nowPlayer: number
   onRestart: () => void
+  waitCpu: () => void
+  decidePass: () => void
 }
 
-const GameHeaderComponent: React.FC<Props> = ({ classes, players, onRestart }) => {
+const GameHeaderComponent: React.FC<Props> = ({ classes, players, nowPlayer, onRestart, waitCpu, decidePass }) => {
+
+  const drawPoint = (index: number, point: number) => {
+    if (index === nowPlayer && index !== 0) {
+      return <React.Fragment><CircularProgress size="1.3em" color="inherit" onClick={waitCpu} /></React.Fragment>;
+    }
+    return <React.Fragment>{point}</React.Fragment>;
+  }
 
   return (
     <React.Fragment>
       <AppBar position="relative" color="transparent">
         <Toolbar>
-          <GameMenuComponent onRestart={onRestart} />
+          <GameMenuComponent onRestart={onRestart} decidePass={decidePass} />
 
           <Typography variant="h6" className={classes.title}>
             <MediaQuery query="(min-width: 768px)">
@@ -44,21 +55,43 @@ const GameHeaderComponent: React.FC<Props> = ({ classes, players, onRestart }) =
             </MediaQuery>
           </Typography>
 
-          <Box borderRadius="5px" p={1}>
-            {players.map((player) => (
-              <Box
-                key={player.color}
-                component="span"
-                color={"#" + player.color}
-                border="1px solid"
-                borderColor={"#" + player.color}
-                borderRadius="5px"
-                m={1}
-                p={1}
-              >
-                <PersonIcon />
-                {player.point}
-              </Box>
+          <Box >
+            {players.map((player, index) => (
+              <React.Fragment key={player.color}>
+                <MediaQuery query="(max-width: 480px)">
+                  <Box
+
+                    component="span"
+                    color={"#" + (index === nowPlayer ? "ffffff" : player.color)}
+                    bgcolor={"#" + (index !== nowPlayer ? (player.pass === true ? "dddddd" : "ffffff") : player.color)}
+                    border="1px solid"
+                    borderColor={"#" + player.color}
+                    borderRadius="5px"
+                    fontSize="small"
+                    margin="5px"
+                    padding="5px"
+                  >
+                    <PersonIcon />
+                    {drawPoint(index, player.point)}
+                  </Box>
+                </MediaQuery>
+                <MediaQuery query="(min-width: 481px)">
+                  <Box
+                    component="span"
+                    color={"#" + (index === nowPlayer ? "ffffff" : player.color)}
+                    bgcolor={"#" + (index !== nowPlayer ? (player.pass === true ? "dddddd" : "ffffff") : player.color)}
+                    border="1px solid"
+                    borderColor={"#" + player.color}
+                    borderRadius="5px"
+                    m={1}
+                    p={1}
+                  >
+                    <PersonIcon />
+                    {drawPoint(index, player.point)}
+                  </Box>
+                </MediaQuery>
+
+              </React.Fragment>
             ))}
           </Box>
         </Toolbar>

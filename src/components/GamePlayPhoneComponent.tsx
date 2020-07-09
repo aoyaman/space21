@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 import Box from "@material-ui/core/Box";
 import Paper from "@material-ui/core/Paper";
@@ -11,6 +10,7 @@ import { GameState, BoardState, PlayerState, TegomaState, KouhoState, SelectStat
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
 import SelectedSpaceComponent from "./SelectedSpaceComponent";
+import GameTegomaComponent from "./GameTegomaComponent";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -46,49 +46,66 @@ type Props = {
   onDecide: (x: number, y: number) => void
   onRotate: () => void
   onFlip: () => void
+  waitCpu: () => void
+  decidePass: () => void
+  onNotSelect: () => void
 };
 
 
-const GamePlayPhoneComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
+const GamePlayPhoneComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass, onNotSelect  }) => {
   const classes = useStyles();
 
   return (
     <React.Fragment>
 
       {/* ヘッダー部分 */}
-      <GameHeaderComponent players={players} onRestart={onRestart} />
+      <GameHeaderComponent players={players} nowPlayer={game.nowPlayer}  onRestart={onRestart} waitCpu={waitCpu} decidePass={decidePass} />
 
       {/* コンテンツ部分 */}
-      <Box m={2}>
+      <Box m={1}>
+
+        {game.nowPlayer === -1 && <div><h2>ゲーム終了です！</h2><Button variant="contained"  color="secondary" onClick={onRestart}>もう一度ゲームをする</Button></div>}
+
         {/* ゲーム版　*/}
-        <Paper className={classes.paper} elevation={3}>
-          <GameBoardComponent board={board}/>
-        </Paper>
+        {select.cells.length <= 0 &&
+          <Paper className={classes.paper} elevation={3}>
+            <GameBoardComponent board={board}/>
+          </Paper>
+        }
 
         {/* 手持ちのスペース */}
-        <Paper className={classes.paper} elevation={3}>
-          <GameBoardComponent board={tegoma} onSelect={onSelectKouho}/>
-        </Paper>
+        {select.cells.length <= 0 &&
+          <Paper className={classes.paper} elevation={3}>
+            <GameTegomaComponent board={tegoma} onSelect={onSelectKouho}/>
+          </Paper>
+        }
+
+        {/* 候補の表示をやめる  */}
+        { select.cells.length > 0 &&
+          <Box p={1}>
+            <Button variant="contained"  color="primary" onClick={onNotSelect}>戻る</Button>
+          </Box >
+        }
 
         {/* 選択したスペース  */}
         { select.cells.length > 0 &&
           <div>
-          <Paper className={classes.paper} elevation={3}>
-            <SelectedSpaceComponent select={select} onRotate={onRotate} onFlip={onFlip}/>
-          </Paper>
+            <Paper className={classes.paper} elevation={3}>
+              <SelectedSpaceComponent select={select} onRotate={onRotate} onFlip={onFlip}/>
+            </Paper>
           </div>
         }
 
         {/* 候補 */}
         {select.cells.length > 0 && kouho.map((kouhoItem, index) => (
             <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
-              <p>候補{index+1}</p>
-              <GameBoardComponent board={kouhoItem.cells}/>
+
               <Box m={1}>
                 <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem.x, kouhoItem.y); }} >
                   この候補に決定
                 </Button>
               </Box>
+              <GameBoardComponent board={kouhoItem.cells}/>
             </Paper>
         ))}
 

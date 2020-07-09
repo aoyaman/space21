@@ -19,9 +19,12 @@ type Props = {
   onDecide: (x: number, y: number) => void
   onRotate: () => void
   onFlip: () => void
+  waitCpu: () => void
+  decidePass: () => void
+  onNotSelect: () => void
 };
 
-const GamePlayComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
+const GamePlayComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass, onNotSelect }) => {
 
   return (
     <React.Fragment>
@@ -40,6 +43,9 @@ const GamePlayComponent: React.FC<Props> = ({ game, board, players, tegoma, kouh
           onDecide={onDecide}
           onRotate={onRotate}
           onFlip={onFlip}
+          waitCpu={waitCpu}
+          decidePass={decidePass}
+          onNotSelect={onNotSelect}
           />
       </MediaQuery>
 
@@ -56,6 +62,8 @@ const GamePlayComponent: React.FC<Props> = ({ game, board, players, tegoma, kouh
             onDecide={onDecide}
             onRotate={onRotate}
             onFlip={onFlip}
+            waitCpu={waitCpu}
+            decidePass={decidePass}
             />
       </MediaQuery>
 

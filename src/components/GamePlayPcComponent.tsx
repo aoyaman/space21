@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 import Box from "@material-ui/core/Box";
 import Container from "@material-ui/core/Container";
@@ -13,6 +12,7 @@ import { GameState, BoardState, PlayerState, TegomaState, KouhoState, SelectStat
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
 import SelectedSpaceComponent from "./SelectedSpaceComponent";
+import GameTegomaComponent from "./GameTegomaComponent";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -50,9 +50,11 @@ type Props = {
   onDecide: (x: number, y: number) => void
   onRotate: () => void
   onFlip: () => void
+  waitCpu: () => void
+  decidePass: () => void
 };
 
-const GamePlayPcComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip }) => {
+const GamePlayPcComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass }) => {
   const classes = useStyles();
 
   return (
@@ -63,9 +65,11 @@ const GamePlayPcComponent: React.FC<Props> = ({ game, board, players, tegoma, ko
 
 
         {/* ヘッダー部分 */}
-        <GameHeaderComponent players={players} onRestart={onRestart} />
+        <GameHeaderComponent players={players} nowPlayer={game.nowPlayer} onRestart={onRestart} waitCpu={waitCpu} decidePass={decidePass} />
 
         <div>
+
+          {game.nowPlayer === -1 && <div><h2>ゲーム終了です！</h2><Button variant="contained"  color="secondary" onClick={onRestart}>もう一度ゲームをする</Button></div>}
 
           {/* ゲーム版　*/}
           <Paper className={classes.paper} elevation={3}>
@@ -74,7 +78,7 @@ const GamePlayPcComponent: React.FC<Props> = ({ game, board, players, tegoma, ko
 
           {/* 手持ちのスペース */}
           <Paper className={classes.paper} elevation={3}>
-            <GameBoardComponent board={tegoma} onSelect={onSelectKouho} width={300} />
+            <GameTegomaComponent board={tegoma} onSelect={onSelectKouho} width={300} />
           </Paper>
 
         </div>
@@ -95,7 +99,7 @@ const GamePlayPcComponent: React.FC<Props> = ({ game, board, players, tegoma, ko
             <Paper className={classes.paper} key={'x='+kouhoItem.x+',y='+kouhoItem.y} elevation={3}>
               <p>候補{index+1}</p>
               <GameBoardComponent board={kouhoItem.cells} width={180} />
-              {game.nowPlayer == game.loginPlayer &&
+              {game.nowPlayer === game.loginPlayer &&
                 <Box m={1}>
                   <Button variant="contained" color="primary" onClick={() => { onDecide(kouhoItem.x, kouhoItem.y); }} >
                     この候補に決定

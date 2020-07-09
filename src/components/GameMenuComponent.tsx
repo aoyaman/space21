@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from 'prop-types'
 
 import IconButton from '@material-ui/core/IconButton';
 import Menu from "@material-ui/core/Menu";
@@ -8,14 +7,14 @@ import MenuIcon from '@material-ui/icons/Menu';
 
 type Props = {
   onRestart: () => void
+  decidePass: () => void
 }
 
-const GameMenuComponent: React.FC<Props> = ({onRestart}) => {
+const GameMenuComponent: React.FC<Props> = ({onRestart, decidePass}) => {
   const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
   const [open, setOpen] = React.useState(false);
 
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    const target: React.SetStateAction<HTMLElement> = event.currentTarget;
     setAnchorEl(event.currentTarget);
     setOpen(true);
   };

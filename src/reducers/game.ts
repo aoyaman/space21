@@ -1,4 +1,4 @@
-import { START_GAME, DECIDE_SPACE, GameActionTypes } from '../actions';
+import { START_GAME, DECIDE_SPACE, CPU_PUT, DECIDE_PASS, GameActionTypes } from '../actions';
 import { GameState } from '../entity/store';
 
 const initialState: GameState = {
@@ -23,6 +23,8 @@ const game = (state = initialState, action: GameActionTypes) => {
       });
 
     case DECIDE_SPACE:
+    case CPU_PUT:
+    case DECIDE_PASS:
       return Object.assign({}, state, {
         nowPlayer: action.nextPlayer,
       });

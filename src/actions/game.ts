@@ -1,7 +1,7 @@
 
-import { SelectKouhoInfo, DecideSpaceInfo } from '../actions';
+import { SelectKouhoInfo, DecideSpaceInfo, DecidePassInfo } from '../actions';
 import { GameInfo, BoardInfo, CellInfo, PlayerInfo, SpaceInfo, TegomaInfo } from '../entity/game';
-import { GameState, PlayerState } from '../entity/store';
+import { GameState } from '../entity/store';
 
 /**
  * ゲームの処理に対するアクション
@@ -60,7 +60,7 @@ export const onSelectKouho = (blockType: number, game: GameState, player: Player
 
 // 右に回転する
 export const onRotate = (board: BoardInfo, blockType: number, color: string, angle: number, flip: boolean):SelectKouhoInfo => {
-  var angle = angle + 1;
+  angle = angle + 1;
   if (angle >= 4) {
     angle = 0;
   }
@@ -74,7 +74,7 @@ export const onFlip = (board: BoardInfo, blockType: number, color: string, angle
 }
 
 // 決定する
-export const onDecide = (x: number, y: number, nowPlayer: number, blockType: number, angle: number, flip: boolean, board: BoardInfo, player: PlayerInfo[]):DecideSpaceInfo => {
+export const onDecide = (x: number, y: number, nowPlayer: number, loginPlayer: number, blockType: number, angle: number, flip: boolean, board: BoardInfo, player: PlayerInfo[], cpuCallback: CpuCallback):DecideSpaceInfo => {
 
   var p = player[nowPlayer];
   var block = p.blocks[blockType];
@@ -95,10 +95,14 @@ export const onDecide = (x: number, y: number, nowPlayer: number, blockType: num
   var tegoma = makeNexts(p.blocks);
 
   // 次のプレイヤー
-  var nextPlayer = nowPlayer + 1;
-  if (nextPlayer >= 4) {
-    nextPlayer = 0;
-  }
+  var nextPlayer: number = calcNextPlayer(nowPlayer, player);
+  console.log('nextPlayer=' + nextPlayer);
+
+  const timeoutId = setTimeout(() => {
+    clearTimeout(timeoutId);
+    goNext(board, player, nextPlayer, loginPlayer, cpuCallback);
+  }, CPU_TIMER_MSEC);
+
 
   return {
     board,
@@ -109,10 +113,43 @@ export const onDecide = (x: number, y: number, nowPlayer: number, blockType: num
   };
 }
 
+
+// パスする
+export const onPass = (nowPlayer: number, loginPlayer: number, player: PlayerInfo[], board: BoardInfo, cpuCallback: CpuCallback):DecidePassInfo => {
+  var p = player[nowPlayer];
+  p.pass = true;
+
+  // 次のプレイヤー
+  var nextPlayer = calcNextPlayer(nowPlayer, player);
+
+
+  // ２秒待つ
+  const timeoutId = setTimeout(() => {
+    clearTimeout(timeoutId);
+    goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
+  }, CPU_TIMER_MSEC);
+
+  return {
+    nowPlayer: nowPlayer,
+    nextPlayer,
+    player,
+  };
+}
+
+// CPUの順番スタート
+export const onWaitCpu = (nowPlayer: number, loginPlayer: number, player: PlayerInfo[], board: BoardInfo, cpuCallback: CpuCallback) => {
+
+  // ２秒待つ
+  const timeoutId = setTimeout(() => {
+    clearTimeout(timeoutId);
+    goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
+  }, CPU_TIMER_MSEC);
+
+}
 // -----------------------------------------------------
 
 const COLOR_DEFAULT = 'd3d3d3';
-const COLOR_RED = 'ff0000';
+const COLOR_RED = 'FF3366';
 const COLOR_BLUE = '0000ff';
 const COLOR_GREEN = '006400';
 const COLOR_YELLOW = 'ffa500';
@@ -146,34 +183,35 @@ const BLOCK_SHAPE = [ [ [ 0, 0 ], [ 0, 1 ], [ 1, 0 ], [ 1, 1 ] ], // 0:四角
 
 const NEXT_POSITIONS = [
 
-  [ 0, 2 ], // 四角
+  [ 0, 1 ], // 四角
   [ 3, 0 ], // １小竹の
-  [ 4, 2 ], // 逆T(短かい方)
+  [ 4, 1 ], // 逆T(短かい方)
   [ 7, 0 ], // ２連続
-  [ 9, 3 ], // ４連続
+  [ 8, 2 ], // ４連続
   [ 12, 0 ], // 「の３個
   [ 15, 2 ], // 「の４個
   [ 17, 0 ], // ３連続
   // [ 20, 2 ], // 半分卍(４個)
-  [ 0, 15 ], // 半分卍(４個)
+  [ 1, 7 ], // 半分卍(４個)
 
-  [ 0, 6 ], // 寝てるやつ
-  [ 5, 5 ], // 逆T(長い方)
+  [ 0, 4 ], // 寝てるやつ
+  [ 5, 4 ], // 逆T(長い方)
   [ 9, 5 ], // L(５個)
   [ 13, 6 ], // 半分卍(４個)
   // [ 18, 5 ], // Z
   // [ 22, 5 ], // ５連続
-  [ 5, 15 ], // Z
-  [ 10, 15 ], // ５連続
+  [ 11, 3 ], // Z
+  [ 19, 3 ], // ５連続
 
   [ 0, 9 ], // 下半身太
   [ 3, 9 ], // Wみたいなの
   [ 7, 9 ], // コの逆
-  [ 11, 9 ], // 手裏剣風
-  [ 15, 9 ], // 十字架
+  [ 10, 9 ], // 手裏剣風
+  [ 13, 9 ], // 十字架
   // [ 19, 10 ], // トンファー
-  [ 16, 15 ], // トンファー
+  [ 16, 10 ], // トンファー
 ];
+const CPU_TIMER_MSEC = 3000;
 
 const makeCells = (w: number, h: number) => {
   var cells  = [];
@@ -225,7 +263,7 @@ const makePlayerInfo = (): PlayerInfo[] => {
 }
 
 var makeNexts = (blocks: SpaceInfo[]): TegomaInfo => {
-  var cells: TegomaInfo = makeCells(20,20);
+  var cells: TegomaInfo = makeCells(20,12);
 
   for (var i = 0; i < blocks.length; i++) {
     if (blocks[i].isSet === false) {
@@ -481,3 +519,134 @@ const makeKouho = (board: BoardInfo, blockType: number, color: string, angle: nu
     tegoma: []
   };
 }
+
+export type CpuCallback = (oard: BoardInfo, player: PlayerInfo[], nowPlayer: number, nextPlayer: number) => void;
+
+/**
+ * 次へ進む
+ */
+export const goNext = (board: BoardInfo, player: PlayerInfo[], nowPlayer: number, loginPlayer: number, cpuCallback: CpuCallback) => {
+
+  // ゲーム終了している場合は何もしない
+  if (nowPlayer < 0) {
+    return;
+  }
+  console.log('CPU START: nowPlayer=' + nowPlayer + ', loginPlayer=' + loginPlayer);
+
+
+  var p = player[nowPlayer];
+
+  // セットしていないスペースのリストを作る
+  var notSetSpaces = [];
+  for (var i = 0; i < p.blocks.length; i++) {
+    if (p.blocks[i].isSet === false) {
+      notSetSpaces.push(p.blocks[i]);
+    }
+  }
+
+  // ブロック数が多い順に並べる
+  notSetSpaces.sort((a, b) => {
+    return BLOCK_SHAPE[b.type].length - BLOCK_SHAPE[a.type].length;
+  });
+
+  var nextPlayer = -1;
+
+  for (var b = 0; b < notSetSpaces.length; b++) {
+    var space = notSetSpaces[b];
+    // 全部のセルをチェックしていく
+    for (var y = 0; y < board.length; y++) {
+      for (var x = 0; x < board[y].length; x++) {
+
+        // 回転させてチェックする
+        for (var angle = 0; angle < 4; angle++) {
+          for (i = 0; i < 2; i++) {
+            // チェック
+            if (checkBlock(space.type, x, y, board, p.color, angle, (i === 1))) {
+              // CPUの場合
+              if (nowPlayer !== loginPlayer) {
+                var block = p.blocks[space.type];
+                block.x = x;
+                block.y = y;
+                block.angle = angle;
+                block.flip = i === 1;
+                block.isSet = true;
+                console.log('decideSpace()... change block', block);
+
+                // ボードにスペースを書き込む
+                drawBlock(space.type, x, y, board, p.color, block.angle, block.flip);
+
+                // ポイントを追加
+                p.point += BLOCK_SHAPE[space.type].length;
+                p.blockZansu--;
+
+                // 次のプレイヤー
+                nextPlayer = calcNextPlayer(nowPlayer, player);
+
+                // 通知
+                cpuCallback(board, player, nowPlayer, nextPlayer);
+
+                // 次の処理のために進めておく
+                nowPlayer = nextPlayer;
+
+              } else {
+                console.log('login user is not pass');
+                return;
+              }
+              console.log('CPU END');
+
+              if (nextPlayer === loginPlayer) {
+                goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
+              } else {
+                // ２秒待つ
+                const timeoutId = setTimeout(() => {
+                  clearTimeout(timeoutId);
+                  goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
+                }, CPU_TIMER_MSEC);
+              }
+              return;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // パス
+  p.pass = true;
+
+  // 次のプレイヤー
+  nextPlayer = calcNextPlayer(nowPlayer, player);
+
+  // 通知
+  cpuCallback(board, player, nowPlayer, nextPlayer);
+  console.log('CPU END2');
+
+  // 次の処理のために進めておく
+  nowPlayer = nextPlayer;
+
+  if (nextPlayer === loginPlayer) {
+    goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
+  } else {
+    // ２秒待つ
+    const timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
+      goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
+    }, CPU_TIMER_MSEC);
+  }
+};
+
+const calcNextPlayer = (nowPlayer: number, players: PlayerInfo[]) => {
+
+  var next = nowPlayer;
+  for (var i = 0; i < players.length; i++) {
+    next++;
+    if (next >= 4) {
+      next = 0;
+    }
+    if (players[next].pass === false) {
+      return next;
+    }
+
+  }
+  return -1;
+};

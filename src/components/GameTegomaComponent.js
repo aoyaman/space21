@@ -2,7 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 
 import { makeStyles } from "@material-ui/core/styles";
-import { BoardState } from '../entity/store';
 
 const BOARD_MAX_WIDTH = 500;
 
@@ -31,14 +30,7 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-
-type Props = {
-  board: BoardState
-  onSelect?: ((blockType: number) => void)|undefined
-  width?: number|undefined
-};
-
-const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
+const GameTegomaComponent = ({ board, onSelect, width }) => {
   const classes = useStyles();
 
   return (
@@ -46,7 +38,7 @@ const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
       className={classes.root}
       style={{
         width: width ? width + "px":  "80vw",
-        height: width ? width + "px" :  "80vm",
+        height: width ? (width / 80 * 56) + "px" :  "56vw",
       }}>
       {board.map((row, y) => (
         <React.Fragment key={"y:" + y}>
@@ -72,5 +64,10 @@ const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
   );
 };
 
+GameTegomaComponent.propTypes = {
+  board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
+  onSelect: PropTypes.func.isRequired,
+  width: PropTypes.number,
+};
 
-export default GameBoardComponent;
+export default GameTegomaComponent;

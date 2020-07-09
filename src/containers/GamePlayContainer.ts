@@ -4,7 +4,7 @@ import { Action } from 'redux';
 
 import { AllState } from '../entity/store';
 
-import { selectKouho, startGame, rotateSpace, flipSpace, decideSpace } from '../actions'
+import { selectKouho, startGame, rotateSpace, flipSpace, decideSpace, waitCpu, decidePass, notSelect } from '../actions'
 import GamePlayComponent from '../components/GamePlayComponent'
 
 const mapStateToProps = (state: AllState) => ({
@@ -22,6 +22,9 @@ const mapDispatchToProps = (dispatch: ThunkDispatch<AllState, undefined, Action>
   onRotate: () => dispatch(rotateSpace()),
   onFlip: () => dispatch(flipSpace()),
   onDecide: (x: number, y: number) => dispatch(decideSpace(x, y)),
+  waitCpu: () => dispatch(waitCpu()),
+  decidePass: () => dispatch(decidePass()),
+  onNotSelect: () => dispatch(notSelect()),
 })
 
 export default connect(
