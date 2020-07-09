@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -9,13 +8,15 @@ import PersonIcon from "@material-ui/icons/Person";
 import MediaQuery from "react-responsive";
 import CircularProgress from '@material-ui/core/CircularProgress';
 
-import { makeStyles } from "@material-ui/core/styles";
+import { Theme } from "@material-ui/core";
+import { withStyles, WithStyles, createStyles } from "@material-ui/core/styles";
 
+import { PlayerState } from '../entity/store';
 import GameMenuComponent from "./GameMenuComponent";
 
-const useStyles = makeStyles((theme) => ({
+const styles = ({ palette, spacing }: Theme) => createStyles({
   menuButton: {
-    marginRight: theme.spacing(2),
+    marginRight: spacing(2),
   },
   title: {
     flexGrow: 1,
@@ -23,12 +24,19 @@ const useStyles = makeStyles((theme) => ({
   toolbar: {
     height: '10px',
   },
-}));
+});
 
-const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePass }) => {
-  const classes = useStyles();
+interface Props extends WithStyles<typeof styles> {
+  players: PlayerState
+  nowPlayer: number
+  onRestart: () => void
+  waitCpu: () => void
+  decidePass: () => void
+}
 
-  const drawPoint = (index, point) => {
+const GameHeaderComponent: React.FC<Props> = ({ classes, players, nowPlayer, onRestart, waitCpu, decidePass }) => {
+
+  const drawPoint = (index: number, point: number) => {
     if (index === nowPlayer && index !== 0) {
       return <React.Fragment><CircularProgress size="1.3em" color="inherit" onClick={waitCpu} /></React.Fragment>;
     }
@@ -39,7 +47,7 @@ const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePas
     <React.Fragment>
       <AppBar position="relative" color="transparent">
         <Toolbar>
-          <GameMenuComponent onRestart={onRestart} decidePass={decidePass} className={classes.menuButton} />
+          <GameMenuComponent onRestart={onRestart} decidePass={decidePass} />
 
           <Typography variant="h6" className={classes.title}>
             <MediaQuery query="(min-width: 768px)">
@@ -95,12 +103,4 @@ const GameHeaderComponent = ({ players, nowPlayer, onRestart, waitCpu, decidePas
   );
 };
 
-GameHeaderComponent.propTypes = {
-  players: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-  nowPlayer: PropTypes.number.isRequired,
-  onRestart: PropTypes.func.isRequired,
-  waitCpu: PropTypes.func.isRequired,
-  decidePass: PropTypes.func.isRequired,
-};
-
-export default GameHeaderComponent;
+export default withStyles(styles)(GameHeaderComponent);

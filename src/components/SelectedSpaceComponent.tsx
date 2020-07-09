@@ -1,8 +1,9 @@
 import React from "react";
-import PropTypes from "prop-types";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
 import { makeStyles } from "@material-ui/core/styles";
+
+import { SelectState } from '../entity/store';
 
 const useStyles = makeStyles((theme) => ({
   celltable: {
@@ -19,7 +20,14 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const SelectedSpaceComponent = ({ select, onRotate, onFlip }) => {
+
+type Props = {
+  select: SelectState
+  onRotate: () => void
+  onFlip: () => void
+};
+
+const SelectedSpaceComponent: React.FC<Props> = ({ select, onRotate, onFlip }) => {
   const classes = useStyles();
 
   return (
@@ -61,7 +69,7 @@ const SelectedSpaceComponent = ({ select, onRotate, onFlip }) => {
           </Box>
 
 
-          <Button variant="contained" color="primary" onClick={onFlip} className={classes.flipButton}>
+          <Button variant="contained" color="primary" onClick={onFlip} >
             左右反転
           </Button>
         </div>
@@ -72,10 +80,5 @@ const SelectedSpaceComponent = ({ select, onRotate, onFlip }) => {
   );
 };
 
-SelectedSpaceComponent.propTypes = {
-  select: PropTypes.shape({}).isRequired,
-  onRotate: PropTypes.func.isRequired,
-  onFlip: PropTypes.func.isRequired,
-};
 
 export default SelectedSpaceComponent;

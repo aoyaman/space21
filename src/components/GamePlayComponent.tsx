@@ -1,13 +1,30 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 import MediaQuery from "react-responsive";
 
+import { GameState, BoardState, PlayerState, TegomaState, KouhoState, SelectState } from '../entity/store';
 import GamePlayPhoneComponent from "./GamePlayPhoneComponent";
 import GamePlayPcComponent from "./GamePlayPcComponent";
 
 
-const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass, onNotSelect}) => {
+type Props = {
+  game: GameState
+  board: BoardState
+  players: PlayerState
+  tegoma: TegomaState
+  kouho: KouhoState
+  select: SelectState
+  onSelectKouho: (blockType: number) => void
+  onRestart: () => void
+  onDecide: (x: number, y: number) => void
+  onRotate: () => void
+  onFlip: () => void
+  waitCpu: () => void
+  decidePass: () => void
+  onNotSelect: () => void
+};
+
+const GamePlayComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass, onNotSelect }) => {
 
   return (
     <React.Fragment>
@@ -54,21 +71,5 @@ const GamePlayComponent = ({ game, board, players, tegoma, kouho, select, onSele
   );
 };
 
-GamePlayComponent.propTypes = {
-  game: PropTypes.shape({}).isRequired,
-  board: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
-  players: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-  tegoma: PropTypes.arrayOf(PropTypes.arrayOf(PropTypes.shape({}))).isRequired,
-  kouho: PropTypes.arrayOf(PropTypes.shape({})).isRequired,
-  select: PropTypes.shape({}).isRequired,
-  onSelectKouho: PropTypes.func.isRequired,
-  onRestart: PropTypes.func.isRequired,
-  onDecide: PropTypes.func.isRequired,
-  onRotate: PropTypes.func.isRequired,
-  onFlip: PropTypes.func.isRequired,
-  waitCpu: PropTypes.func.isRequired,
-  decidePass: PropTypes.func.isRequired,
-  onNotSelect: PropTypes.func.isRequired,
-};
 
 export default GamePlayComponent;
