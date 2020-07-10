@@ -1,22 +1,30 @@
 
 import { Dispatch } from "redux";
 
-import { GameInfo, CellInfo, PlayerInfo, KouhoInfo, BoardInfo } from '../entity/game';
-import { makeNewGame, onSelectKouho, onRotate, onFlip, onDecide, CpuCallback, onPass, onWaitCpu } from './game';
-import { AllState } from '../entity/store';
+import { GameInfo, CellInfo, PlayerInfo, KouhoInfo, BoardInfo } from '../domain/GameInfo';
+import Space21 from '../domain/space21';
+import * as info from '../domain/GameInfo';
+import { AllState, GameInfoState } from '../entity/store';
+
+export const CHANGE_GAME_INFO = 'CHANGE_GAME_INFO';
+export interface ActionChangeGameInfo {
+  type: typeof CHANGE_GAME_INFO
+  gameInfo: GameInfoState
+}
 
 /**
  * ゲーム開始
  */
 export const START_GAME = 'START_GAME';
-interface ActionStartGame {
+export interface ActionStartGame {
   type: typeof START_GAME
-  game: GameInfo
+  gameInfo: GameInfoState
 }
 export const startGame = () => (dispatch: Dispatch) => {
+  let space21: Space21 = new Space21(null);
   dispatch({
-    type: START_GAME,
-    game: makeNewGame()
+    type: CHANGE_GAME_INFO,
+    gameInfo: space21.getInfo(),
   });
 }
 
@@ -46,30 +54,20 @@ interface ActionCpuPut {
  * 置くスペースを決定
  */
 export const DECIDE_SPACE = 'DECIDE_SPACE';
-export interface DecideSpaceInfo {
-  board: BoardInfo
-  nowPlayer: number
-  nextPlayer: number
-  player: PlayerInfo[]
-  tegoma: CellInfo[][]
-}
-interface ActionDecideSpace extends DecideSpaceInfo{
-  type: typeof DECIDE_SPACE
-}
 export const decideSpace = (x: number, y: number) => (dispatch: Dispatch, getState: () => AllState) => {
-  const { game, select, board, player } = getState();
+  const { gameInfo } = getState();
+
+  let space21: Space21 = new Space21(gameInfo);
 
   // CPUの手を受け取るコールバック関数
-  const callback:CpuCallback = (board: BoardInfo, player: PlayerInfo[], nowPlayer: number, nextPlayer: number) => {
+  const callback:info.CpuCallback = (gameInfo: GameInfo) => {
     // Reducerに通知する
     dispatch({
-      type: 'CPU_PUT',
-      board,
-      nowPlayer,
-      nextPlayer,
-      player,
+      type: CHANGE_GAME_INFO,
+      ...gameInfo
     });
   }
+  space21.onDecide(x, y, callback);
 
   // 手の決定処理
   const result: DecideSpaceInfo = onDecide(x, y, game.nowPlayer, game.loginPlayer, select.blockType, select.angle, select.flip, board, player, callback);
@@ -87,11 +85,6 @@ export const decideSpace = (x: number, y: number) => (dispatch: Dispatch, getSta
  * パスする
  */
 export const DECIDE_PASS = 'DECIDE_PASS';
-export interface DecidePassInfo {
-  nowPlayer: number
-  nextPlayer: number
-  player: PlayerInfo[]
-}
 interface ActionDecidePass extends DecidePassInfo{
   type: typeof DECIDE_PASS
 }
@@ -163,14 +156,14 @@ export const notSelect = () => (dispatch: Dispatch) => {
  * 候補を選択
  */
 export const SELECT_KOUHO = 'SELECT_KOUHO';
-export interface SelectKouhoInfo {
-  blockType: number
-  tegoma: CellInfo[][]
-  list: KouhoInfo[]
-  cells: CellInfo[][]
-  angle: number
-  flip: boolean
-}
+// export interface SelectKouhoInfo {
+//   blockType: number
+//   tegoma: CellInfo[][]
+//   list: KouhoInfo[]
+//   cells: CellInfo[][]
+//   angle: number
+//   flip: boolean
+// }
 export interface ActionSelectKouho extends SelectKouhoInfo {
   type: typeof SELECT_KOUHO
 }

@@ -1,4 +1,4 @@
-import { CellInfo, KouhoInfo, PlayerInfo, BoardInfo, TegomaInfo } from './game';
+import { CellInfo, KouhoInfo, PlayerInfo, BoardInfo, TegomaInfo, GameInfo } from '../domain/GameInfo';
 
 /**
  * アプリの制御用データ
@@ -6,6 +6,11 @@ import { CellInfo, KouhoInfo, PlayerInfo, BoardInfo, TegomaInfo } from './game';
 export interface AppState {
   page: string
 }
+
+/**
+ * 現在のゲームの情報
+ */
+export type GameInfoState = GameInfo;
 
 /**
  * ゲーム進行情報
@@ -58,4 +63,5 @@ export interface AllState {
   player: PlayerState
   select: SelectState
   tegoma: TegomaState
+  gameInfo: GameInfoState
 }
