@@ -1,36 +1,39 @@
-
- /**
-  * セル情報
-  */
- export interface CellInfo {
-  color: string
-  blockType: number
-  isSet: boolean
+/**
+ * セル情報
+ */
+export interface CellInfo {
+  color: string;
+  blockType: number;
+  isSet: boolean;
 }
 
 /**
  * スペース情報
  */
 export interface SpaceInfo {
-  type: number
-  isSet: boolean
-  color: string
-  x: number | undefined
-  y: number | undefined
-  angle: number | undefined
-  flip: boolean | undefined
+  type: number;
+  isSet: boolean;
+  color: string;
+  x: number;
+  y: number;
+  angle: number;
+  flip: boolean;
 }
 
 /**
  * プレイヤー情報
  */
 export interface PlayerInfo {
-  name: string
-  color: string
-  blockZansu: number
-  point: number
-  pass: boolean
-  spaces: SpaceInfo[]
+  name: string;
+  playerType: PlayerType;
+  color: string;
+  blockZansu: number;
+  point: number;
+  pass: boolean;
+  spaces: SpaceInfo[];
+
+  tegoma: TegomaInfo;
+  selectInfo: SelectInfo | null;
 }
 
 /**
@@ -48,27 +51,44 @@ export type SpaceType = number;
 export type AngleType = number;
 export type FlipType = boolean;
 
+/**
+ * ゲームの状態
+ */
+export enum GameStatus {
+  NONE = 0,
+  WAIT_USER, // ユーザの操作待ち
+  WAIT_CPU, // CPUの操作待ち
+  END, // ゲーム終了
+}
+
+/**
+ * プレイヤータイプ
+ */
+export enum PlayerType {
+  CPU = 0,
+  HUMAN,
+}
 
 /**
  * ゲーム情報
  */
 export interface GameInfo {
-  date: Date
-  nowPlayer: PlayerIndex
-  loginPlayer: PlayerIndex
-  board: BoardInfo
-  players: PlayerInfo[]
-  tegoma: TegomaInfo
-  selectInfo: SelectInfo
+  status: GameStatus;
+  date: Date;
+  nowPlayer: PlayerIndex;
+  loginPlayer: PlayerIndex;
+  board: BoardInfo;
+  players: PlayerInfo[];
+  cpuWaitMsec: number;
 }
 
 /**
  * 候補の情報
  */
 export interface KouhoInfo {
-  x: number
-  y: number
-  cells: CellInfo[][]
+  x: number;
+  y: number;
+  cells: CellInfo[][];
 }
 
 /**
@@ -85,27 +105,36 @@ export type SelectBoard = BoardInfo;
  * 選択状態
  */
 export interface SelectInfo {
-  spaceType: SpaceType
-  angle: AngleType
-  flip: FlipType
-  board: SelectBoard
-  kouhoList: KouhoInfo[]
+  spaceType: SpaceType;
+  angle: AngleType;
+  flip: FlipType;
+  board: SelectBoard;
+  kouhoList: KouhoInfo[];
 }
 
+/**
+ * 手
+ */
+export interface Hand {
+  spaceType: SpaceType;
+  x: number;
+  y: number;
+  angle: AngleType;
+  flip: FlipType;
+}
 
 export interface DecidePassInfo {
-  nowPlayer: number
-  nextPlayer: number
-  player: PlayerInfo[]
+  nowPlayer: number;
+  nextPlayer: number;
+  player: PlayerInfo[];
 }
 
 export type CpuCallback = (gameInfo: GameInfo) => void;
 
-
 export interface DecideSpaceInfo {
-  board: BoardInfo
-  nowPlayer: number
-  nextPlayer: number
-  player: PlayerInfo[]
-  tegoma: CellInfo[][]
+  board: BoardInfo;
+  nowPlayer: number;
+  nextPlayer: number;
+  player: PlayerInfo[];
+  tegoma: CellInfo[][];
 }

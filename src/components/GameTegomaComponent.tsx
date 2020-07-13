@@ -1,6 +1,7 @@
 import React from "react";
 
 import { makeStyles } from "@material-ui/core/styles";
+
 import * as info from "../domain/GameInfo";
 
 const BOARD_MAX_WIDTH = 500;
@@ -36,7 +37,7 @@ type Props = {
   width?: number | undefined;
 };
 
-const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
+const GameTegomaComponent: React.FC<Props> = ({ board, onSelect, width }) => {
   const classes = useStyles();
 
   const makeList = () => {
@@ -60,10 +61,11 @@ const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
                   : `${BOARD_MAX_WIDTH / board[y].length}px`,
               }}
               onClick={(e) => {
-                console.log(e);
-              }}
-              onKeyUp={() => {
+                console.log("onClick()...", e);
                 if (cell.blockType >= 0 && onSelect) onSelect(cell.blockType);
+              }}
+              onKeyUp={(e) => {
+                console.log("onKeyUp", e);
               }}
               role="button"
               tabIndex={0}
@@ -81,12 +83,39 @@ const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
       className={classes.root}
       style={{
         width: width ? `${width}px` : "80vw",
-        height: width ? `${width}px` : "80vm",
+        height: width ? `${(width / 80) * 56}px` : "56vw",
       }}
     >
       {makeList()}
+      {/*
+      {board.map((row, y) => (
+        <React.Fragment key={`y:${y}`}>
+          {row.map((cell, x) => {
+            return (
+              <div
+                className={classes.cell}
+                style={{
+                  backgroundColor: `#${cell.color}`,
+                  width: width ? `${width / 20}px` : "4vw",
+                  height: width ? `${width / 20}px` : "4vw",
+                  maxWidth: width
+                    ? `${width / 20}px`
+                    : `${BOARD_MAX_WIDTH / row.length}px`,
+                  maxHeight: width
+                    ? `${width / 20}px`
+                    : `${BOARD_MAX_WIDTH / row.length}px`,
+                }}
+                onClick={() => {
+                  if (cell.blockType >= 0 && onSelect) onSelect(cell.blockType);
+                }}
+                key={`x${x}y${y}`}
+              ></div>
+            );
+          })}
+        </React.Fragment>
+      ))} */}
     </div>
   );
 };
 
-export default GameBoardComponent;
+export default GameTegomaComponent;

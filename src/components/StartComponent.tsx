@@ -7,13 +7,19 @@ import Box from "@material-ui/core/Box";
 import titleImage from "../image/space21_image.jpg";
 
 type Props = {
-  onStart: () => void
-}
+  onStart: () => void;
+};
 
-const StartComponent: React.FC<Props> = ({onStart}) => (
-  <Grid container spacing={0} direction="column" alignItems="center" justify="center" style={{ minHeight: "100vh" }}>
+const StartComponent: React.FC<Props> = ({ onStart }) => (
+  <Grid
+    container
+    spacing={0}
+    direction="column"
+    alignItems="center"
+    justify="center"
+    style={{ minHeight: "100vh" }}
+  >
     <Grid item xs={4} style={{ textAlign: "center" }}>
-
       <Typography variant="h2">Space21</Typography>
 
       <Box m={1}>
@@ -21,7 +27,7 @@ const StartComponent: React.FC<Props> = ({onStart}) => (
       </Box>
 
       <Box m={1}>
-        <Button variant="contained" color="primary" onClick={onStart} >
+        <Button variant="contained" color="primary" onClick={onStart}>
           Start
         </Button>
       </Box>

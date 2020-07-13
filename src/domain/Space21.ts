@@ -1,279 +1,434 @@
-import * as ift from "./GameInfo";
+import * as info from "./GameInfo";
 import * as define from "./define";
 
 export default class Space21 {
-  private gameInfo: ift.GameInfo;
-  constructor(gameInfo: ift.GameInfo|null) {
-    if (gameInfo === null) {
-      this.gameInfo = this.makeNewGame();
-    } else {
+  private gameInfo: info.GameInfo;
+
+  /**
+   * コンストラクタ
+   * @param gameInfo
+   */
+  constructor(gameInfo?: info.GameInfo, playerTypes?: info.PlayerType[]) {
+    if (gameInfo !== undefined) {
       this.gameInfo = JSON.parse(JSON.stringify(gameInfo));
+    } else if (playerTypes !== undefined) {
+      this.gameInfo = this.makeNewGame(playerTypes);
+    } else {
+      throw new Error("引数が指定されていません");
     }
-  }
-
-  public getInfo = (): ift.GameInfo => {
-    return this.gameInfo;
-  }
-
-  getNowPlayerInfo = (): ift.PlayerInfo => {
-    return this.gameInfo.players[this.gameInfo.nowPlayer];
-  };
-
-  getNowPlayerSpaces = (): ift.SpaceInfo[] => {
-    return this.getNowPlayerInfo().spaces;
-  };
-
-
-  public makeNewGame = ():ift.GameInfo => {
-    const players: ift.PlayerInfo[] = this.makePlayerInfo();
-    const nowPlayer = 0;
-    var game: ift.GameInfo = {
-      date: new Date(),
-      nowPlayer,
-      loginPlayer: 0,
-      cells: this.makeCells(20, 20),
-      players,
-      tegoma: this.makeNexts(players[nowPlayer].spaces)
-    }
-    return game;
   }
 
   /**
+   * GameInfoの初期値を返す
+   */
+  public static getInitializeGameInfo = (): info.GameInfo => {
+    return {
+      status: info.GameStatus.NONE,
+      date: new Date(),
+      nowPlayer: 0,
+      loginPlayer: 0,
+      board: [],
+      players: [],
+      cpuWaitMsec: 2000,
+    };
+  };
+
+  /**
+   * ゲーム情報を返す
+   * @return GemInfo
+   */
+  public getInfo = (): info.GameInfo => {
+    return this.gameInfo;
+  };
+
+  /**
    * 未設定のスペースの中から１つ選ぶ
+   *
    * @param spaceType: SpaceType      スペースの種類
    * @param playerIndex: PlayerIndex  対象となるプレイヤー
    * @return SelectInfo
    */
-  onSelectSpace = (spaceType: ift.SpaceType, playerIndex: ift.PlayerIndex): ift.SelectInfo => {
-    var kouhoList = [];
+  public onSelectSpace = (
+    spaceType: info.SpaceType,
+    playerIndex: info.PlayerIndex
+  ): Promise<info.GameInfo> => {
+    const promise = new Promise<info.GameInfo>((resolve, reject) => {
+      const kouhoList = [];
 
-    var angleDefault = 0;
-    var flipDefault = false;
+      const angleDefault = 0;
+      const flipDefault = false;
 
-    var playerInfo = this.gameInfo.players[playerIndex];
-    playerInfo.spaces[spaceType].color = define.COLOR_SELECT;
-    var tegoma = this.makeNexts(playerInfo.spaces);
+      const playerInfo = this.gameInfo.players[playerIndex];
+      if (playerInfo.playerType !== info.PlayerType.HUMAN) {
+        reject(new Error("onSelectSpace() HUMANではありません"));
+        return;
+      }
 
-    let board: ift.BoardInfo = this.gameInfo.cells;
+      if (playerInfo.spaces[spaceType].isSet === true) {
+        reject(new Error("onSelectSpace() 既にセットされています"));
+        return;
+      }
 
-    // 置ける場所の候補リスト
-    for (var y = 0; y < board.length; y++) {
-      for (var x = 0; x < board[y].length; x++) {
-        if (this.checkBlock(spaceType, x, y, board, playerInfo.color, angleDefault, flipDefault)) {
-          // 候補用の色を取得
-          var color = define.COLOR_SELECT;
+      // playerInfo.spaces[spaceType].color = define.COLOR_SELECT;
+      // playerInfo.tegoma = this.makeNexts(playerInfo.spaces);
 
-          // ここに置いた場合の絵を書く
-          var cells2 = JSON.parse(JSON.stringify(board));
-          this.drawBlock(spaceType, x, y, cells2, color, angleDefault, flipDefault);
+      const { board } = this.gameInfo;
 
-          // 候補をリストに追加
-          var kouhoItem = {
-            x,
-            y,
-            cells: cells2,
-          };
-          kouhoList.push(kouhoItem);
+      // 置ける場所の候補リスト
+      for (let y = 0; y < board.length; y += 1) {
+        for (let x = 0; x < board[y].length; x += 1) {
+          if (
+            this.checkBlock(
+              spaceType,
+              x,
+              y,
+              board,
+              playerInfo.color,
+              angleDefault,
+              flipDefault
+            )
+          ) {
+            // 候補用の色を取得
+            const color = define.COLOR_SELECT;
+
+            // ここに置いた場合の絵を書く
+            const cells2 = JSON.parse(JSON.stringify(board));
+            this.drawBlock(
+              spaceType,
+              x,
+              y,
+              cells2,
+              color,
+              angleDefault,
+              flipDefault
+            );
+
+            // 候補をリストに追加
+            const kouhoItem = {
+              x,
+              y,
+              cells: cells2,
+            };
+            kouhoList.push(kouhoItem);
+          }
         }
       }
-    }
 
+      const selectBoard: info.SelectBoard = this.makeCells(5, 5);
+      this.drawBlock(spaceType, 0, 0, board, define.COLOR_SELECT, 0, false);
 
+      playerInfo.selectInfo = {
+        spaceType,
+        kouhoList,
+        board: selectBoard,
+        angle: angleDefault,
+        flip: flipDefault,
+      };
 
-    var selectBoard: ift.SelectBoard = this.makeCells(5, 5);
-    this.drawBlock(spaceType, 0, 0, board, define.COLOR_SELECT, 0, false);
-
-    return {
-      spaceType,
-      kouhoList,
-      board: selectBoard,
-      angle: angleDefault,
-      flip: flipDefault,
-    };
+      resolve(this.gameInfo);
+    });
+    return promise;
   };
-
 
   // 右に回転する
-  public onRotate = (board: ift.BoardInfo, blockType: number, color: string, angle: number, flip: boolean):ift.SelectInfo => {
-    angle = angle + 1;
-    if (angle >= 4) {
-      angle = 0;
-    }
-    return this.makeKouho(board, blockType, color, angle, flip);
-  }
+  public rotate = (playerIndex: info.PlayerIndex): Promise<info.GameInfo> => {
+    const promise = new Promise<info.GameInfo>((resolve, reject) => {
+      const p = this.gameInfo.players[playerIndex];
+      if (p.playerType !== info.PlayerType.HUMAN) {
+        reject(new Error("onDecide() HUMANではありません"));
+      }
 
+      const { selectInfo } = p;
+      if (selectInfo === null) {
+        reject(new Error("スペースが選択されていません"));
+        return;
+      }
+
+      selectInfo.angle += 1;
+      if (selectInfo.angle >= 4) {
+        selectInfo.angle = 0;
+      }
+      selectInfo.kouhoList = this.makeKouho(
+        selectInfo.spaceType,
+        p.color,
+        selectInfo.angle,
+        selectInfo.flip
+      );
+      resolve(this.gameInfo);
+    });
+    return promise;
+  };
 
   // 左右反転する
-  public onFlip = (board: ift.BoardInfo, blockType: number, color: string, angle: number, flip: boolean):ift.SelectInfo => {
-    return this.makeKouho(board, blockType, color, angle, !flip);
-  }
+  public flip = (playerIndex: info.PlayerIndex): Promise<info.GameInfo> => {
+    const promise = new Promise<info.GameInfo>((resolve, reject) => {
+      const p = this.gameInfo.players[playerIndex];
+      if (p.playerType !== info.PlayerType.HUMAN) {
+        reject(new Error("onDecide() HUMANではありません"));
+      }
 
-  // 決定する
-  public onDecide = (x: number, y: number, cpuCallback: ift.CpuCallback):ift.DecideSpaceInfo => {
+      const { selectInfo } = p;
+      if (selectInfo === null) {
+        reject(new Error("スペースが選択されていません"));
+        return;
+      }
 
-    var selectInfo = this.gameInfo.selectInfo;
-    var p = this.getNowPlayerInfo();;
-    var spaceInfo = p.spaces[selectInfo.spaceType];
-    spaceInfo.x = x;
-    spaceInfo.y = y;
-    spaceInfo.angle = selectInfo.angle;
-    spaceInfo.flip = selectInfo.flip;
-    spaceInfo.isSet = true;
-    console.log('decideSpace()... change spaceInfo', spaceInfo);
+      selectInfo.flip = !selectInfo.flip;
+      selectInfo.kouhoList = this.makeKouho(
+        selectInfo.spaceType,
+        p.color,
+        selectInfo.angle,
+        selectInfo.flip
+      );
+      resolve(this.gameInfo);
+    });
+    return promise;
+  };
 
-    // ボードにスペースを書き込む
-    this.drawBlock(selectInfo.spaceType, x, y, this.gameInfo.board, p.color, selectInfo.angle, selectInfo.flip);
+  /**
+   * 手の決定
+   *
+   * @param x
+   * @param y
+   */
+  public onDecide = (x: number, y: number): Promise<info.GameInfo> => {
+    const promise = new Promise<info.GameInfo>((resolve, reject) => {
+      const p = this.getNowPlayerInfo();
+      if (p.playerType !== info.PlayerType.HUMAN) {
+        reject(new Error("onDecide() HUMANではありません"));
+      }
 
-    // ポイントを追加
-    p.point += define.BLOCK_SHAPE[selectInfo.spaceType].length;
-    p.blockZansu--;
+      const { selectInfo } = p;
+      if (selectInfo === null) {
+        reject(new Error("スペースが選択されていません"));
+        return;
+      }
 
-    this.gameInfo.tegoma = this.makeNexts(p.spaces);
+      const spaceInfo = p.spaces[selectInfo.spaceType];
+      spaceInfo.x = x;
+      spaceInfo.y = y;
+      spaceInfo.angle = selectInfo.angle;
+      spaceInfo.flip = selectInfo.flip;
+      spaceInfo.isSet = true;
+      console.log("decideSpace()... change spaceInfo", spaceInfo);
 
-    // 次のプレイヤー
-    this.gameInfo.nowPlayer = this.calcNextPlayer();
-    console.log('nextPlayer=' + this.gameInfo.nowPlayer);
+      // ボードにスペースを書き込む
+      this.drawBlock(
+        selectInfo.spaceType,
+        x,
+        y,
+        this.gameInfo.board,
+        p.color,
+        selectInfo.angle,
+        selectInfo.flip
+      );
 
-    const timeoutId = setTimeout(() => {
-      clearTimeout(timeoutId);
-      this.goNext(cpuCallback);
-    }, define.CPU_TIMER_MSEC);
+      // ポイントを追加
+      p.point += define.BLOCK_SHAPE[selectInfo.spaceType].length;
+      p.blockZansu -= 1;
 
-    cpuCallback(this.gameInfo);
-  }
+      // 手駒リストを修正
+      p.tegoma = this.makeNexts(p.spaces);
 
+      // 残りの手があるかどうかを調べる
+      p.pass = this.calcHands(this.gameInfo.nowPlayer, false).length === 0;
 
-  // パスする
-  public onPass = (nowPlayer: number, loginPlayer: number, player: ift.PlayerInfo[], board: ift.BoardInfo, cpuCallback: ift.CpuCallback):ift.DecidePassInfo => {
-    var p = player[nowPlayer];
-    p.pass = true;
+      // 次のプレイヤー
+      this.gameInfo.nowPlayer = this.calcNextPlayer();
+      console.log(`nextPlayer=${this.gameInfo.nowPlayer}`);
 
-    // 次のプレイヤー
-    var nextPlayer = this.calcNextPlayer(nowPlayer, player);
+      // ゲームの状態
+      if (this.gameInfo.nowPlayer < 0) {
+        this.gameInfo.status = info.GameStatus.END;
+      } else if (this.getNowPlayerInfo().playerType === info.PlayerType.HUMAN) {
+        this.gameInfo.status = info.GameStatus.WAIT_USER;
+      } else {
+        this.gameInfo.status = info.GameStatus.WAIT_CPU;
+      }
 
+      // 通知
+      resolve(this.gameInfo);
+    });
 
-    // ２秒待つ
-    const timeoutId = setTimeout(() => {
-      clearTimeout(timeoutId);
-      this.goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
-    }, define.CPU_TIMER_MSEC);
+    return promise;
+  };
 
-    return {
-      nowPlayer: nowPlayer,
-      nextPlayer,
-      player,
-    };
-  }
+  // // パスする
+  // public onPass = (
+  //   nowPlayer: number,
+  //   loginPlayer: number,
+  //   player: info.PlayerInfo[],
+  //   board: info.BoardInfo,
+  //   cpuCallback: info.CpuCallback
+  // ): info.DecidePassInfo => {
+  //   var p = player[nowPlayer];
+  //   p.pass = true;
+
+  //   // 次のプレイヤー
+  //   var nextPlayer = this.calcNextPlayer(nowPlayer, player);
+
+  //   // ２秒待つ
+  //   const timeoutId = setTimeout(() => {
+  //     clearTimeout(timeoutId);
+  //     this.goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
+  //   }, define.CPU_TIMER_MSEC);
+
+  //   return {
+  //     nowPlayer: nowPlayer,
+  //     nextPlayer,
+  //     player,
+  //   };
+  // };
 
   // CPUの順番スタート
-  public onWaitCpu = (nowPlayer: number, loginPlayer: number, player: ift.PlayerInfo[], board: ift.BoardInfo, cpuCallback: ift.CpuCallback) => {
-
-    // ２秒待つ
-    const timeoutId = setTimeout(() => {
-      clearTimeout(timeoutId);
-      this.goNext(board, player, nowPlayer, loginPlayer, cpuCallback);
-    }, define.CPU_TIMER_MSEC);
-
-  }
-
-  private makeNexts = (blocks: ift.SpaceInfo[]): ift.BoardInfo => {
-    var cells: ift.TegomaInfo = this.makeCells(20, 12);
-
-    for (var i = 0; i < blocks.length; i++) {
-      if (blocks[i].isSet === false) {
-        this.drawNextBlock(blocks[i], cells, blocks[i].color);
+  public goCpu = (): Promise<info.GameInfo> => {
+    const promise = new Promise<info.GameInfo>((resolve, reject) => {
+      const p = this.getNowPlayerInfo();
+      if (p.playerType !== info.PlayerType.CPU) {
+        reject(new Error("onDecide() CPUではありません"));
       }
-    }
-    console.log("makeNexts...", cells);
-    return cells;
+
+      const hands: info.SpaceInfo[] = this.calcHands(
+        this.gameInfo.nowPlayer,
+        false
+      );
+      if (hands.length === 0) {
+        p.pass = true;
+      } else {
+        const hand = hands[0];
+        const space = p.spaces[hand.type];
+        space.x = hand.x;
+        space.y = hand.y;
+        space.angle = hand.angle;
+        space.flip = hand.flip;
+        space.isSet = true;
+        console.log("decideSpace()... change space", space);
+
+        // ボードにスペースを書き込む
+        this.drawBlock(
+          space.type,
+          space.x,
+          space.y,
+          this.gameInfo.board,
+          p.color,
+          space.angle,
+          space.flip
+        );
+
+        // ポイントを追加
+        p.point += define.BLOCK_SHAPE[space.type].length;
+        p.blockZansu -= 1;
+
+        // 残りの手があるかどうかを調べる
+        p.pass = this.calcHands(this.gameInfo.nowPlayer, false).length === 0;
+      }
+      // 次のプレイヤー
+      this.gameInfo.nowPlayer = this.calcNextPlayer();
+      console.log(`nextPlayer=${this.gameInfo.nowPlayer}`);
+
+      // ゲームの状態
+      if (this.gameInfo.nowPlayer < 0) {
+        this.gameInfo.status = info.GameStatus.END;
+      } else if (this.getNowPlayerInfo().playerType === info.PlayerType.HUMAN) {
+        this.gameInfo.status = info.GameStatus.WAIT_USER;
+      } else {
+        this.gameInfo.status = info.GameStatus.WAIT_CPU;
+      }
+
+      // 通知
+      resolve(this.gameInfo);
+    });
+    return promise;
   };
 
-  private makeCells = (w: number, h: number) => {
-    var cells = [];
-    for (var y = 0; y < h; y++) {
-      var row = [];
-      for (var x = 0; x < w; x++) {
-        let cell = {
-          color: define.COLOR_DEFAULT,
-          blockType: -1,
-          isSet: false,
-        };
-        row.push(cell);
-      }
-      cells.push(row);
-    }
-    return cells;
+  // ----------------------------------------------------------------------------
+  // private methods
+  // ----------------------------------------------------------------------------
+
+  private getNowPlayerInfo = (): info.PlayerInfo => {
+    return this.gameInfo.players[this.gameInfo.nowPlayer];
   };
 
+  private getNowPlayerSpaces = (): info.SpaceInfo[] => {
+    return this.getNowPlayerInfo().spaces;
+  };
 
-  private makePlayerInfo = (): ift.PlayerInfo[] => {
-    var players: ift.PlayerInfo[] = [];
-    var colors2 = define.COLORS;
-    for (var i = 0; i < 4; i++) {
+  private makeNewGame = (playerTypes: info.PlayerType[]): info.GameInfo => {
+    // プレイヤー情報を作る
+    const players: info.PlayerInfo[] = this.makePlayerInfo(playerTypes);
 
-      var spaces: ift.SpaceInfo[] = [];
-      for (var b = 0; b < define.BLOCK_SHAPE.length; b++) {
-        var block: ift.SpaceInfo = {
-          type: b,
-          isSet: false,
-          color: colors2[i],
-          x: undefined,
-          y: undefined,
-          angle: undefined,
-          flip: undefined,
-        }
-        spaces.push(block);
-      }
-
-      var player: ift.PlayerInfo = {
-        name: i === 0 ? 'あなた' : 'CPU' + (i),
-        color: colors2[i],
-        blockZansu: 21,
-        point: 0,
-        pass: false,
-        spaces,
-      }
-      players.push(player);
-    }
-    return players;
-  }
+    const nowPlayer = 0;
+    const gameInfo: info.GameInfo = {
+      status: info.GameStatus.WAIT_USER,
+      date: new Date(),
+      nowPlayer,
+      loginPlayer: 0,
+      board: this.makeCells(20, 20),
+      players,
+      cpuWaitMsec: 2000,
+    };
+    console.log("startGame...", gameInfo);
+    return gameInfo;
+  };
 
   /**
    * ブロック候補の表示
    */
-  private drawNextBlock = (block: ift.SpaceInfo, cells: ift.TegomaInfo, color: string) => {
-    var x = define.NEXT_POSITIONS[block.type][0];
-    var y = define.NEXT_POSITIONS[block.type][1];
-    for (var i = 0; i < define.BLOCK_SHAPE[block.type].length; i++) {
-      var cell = cells[y + define.BLOCK_SHAPE[block.type][i][1]][x + define.BLOCK_SHAPE[block.type][i][0]];
+  private drawNextBlock = (
+    block: info.SpaceInfo,
+    cells: info.TegomaInfo,
+    color: string
+  ) => {
+    const x = define.NEXT_POSITIONS[block.type][0];
+    const y = define.NEXT_POSITIONS[block.type][1];
+    for (let i = 0; i < define.BLOCK_SHAPE[block.type].length; i += 1) {
+      const cell =
+        cells[y + define.BLOCK_SHAPE[block.type][i][1]][
+          x + define.BLOCK_SHAPE[block.type][i][0]
+        ];
       cell.color = color;
       cell.blockType = block.type;
     }
   };
 
-
   /**
    * ブロックの色表示
    */
-  private drawBlock = (index: number, x: number, y: number, cells: ift.BoardInfo, color: string, angle: number, flip: boolean) => {
-    var block: number[][] = define.BLOCK_SHAPE[index];
+  private drawBlock = (
+    index: number,
+    x: number,
+    y: number,
+    cells: info.BoardInfo,
+    color: string,
+    angle: number,
+    flip: boolean
+  ) => {
+    let block: number[][] = define.BLOCK_SHAPE[index];
     block = this.calcBlockShape(index, block, angle, flip);
 
     this.drawBlock2(index, block, x, y, cells, color);
-  }
+  };
 
-  private drawBlock2 = (blockType: number, block: number[][], x: number, y: number, cells: ift.BoardInfo, color: string) => {
-    for (var i = 0; i < block.length; i++) {
-      var x2 = block[i][0];
-      var y2 = block[i][1];
-      cells[y + y2][x + x2].color = color;
-      cells[y + y2][x + x2].blockType = blockType;
-      cells[y + y2][x + x2].isSet = true;
+  private drawBlock2 = (
+    blockType: number,
+    block: number[][],
+    x: number,
+    y: number,
+    cells: info.BoardInfo,
+    color: string
+  ) => {
+    const newCells: info.BoardInfo = cells;
+    for (let i = 0; i < block.length; i += 1) {
+      const x2 = block[i][0];
+      const y2 = block[i][1];
+      newCells[y + y2][x + x2].color = color;
+      newCells[y + y2][x + x2].blockType = blockType;
+      newCells[y + y2][x + x2].isSet = true;
     }
-  }
+  };
 
-
-  /***
+  /**
+   *
    * ブロックを90度回転、反転させるメソッド
    *
    * @param oldShape 選択されたブロック
@@ -281,25 +436,28 @@ export default class Space21 {
    * @param flip 反転するかどうか
    * @return 90度回転、もしくは反転したブロックの形
    */
-  private calcBlockShape = (blockType: number, oldShape: number[][], angle: number, flip: boolean) => {
+  private calcBlockShape = (
+    blockType: number,
+    oldShape: number[][],
+    angle: number,
+    flip: boolean
+  ) => {
     if (angle === 0 && flip === false) {
       return oldShape;
     }
-    var cells = this.makeCells(5, 5);
-    var cells2 = this.makeCells(5, 5);
+    let cells = this.makeCells(5, 5);
+    const cells2 = this.makeCells(5, 5);
 
     // まず、左上を始点として角度なしで描く
     this.drawBlock2(blockType, oldShape, 0, 0, cells, "ZZZ");
 
-    for (var a = 0; a < angle; a++) {
+    for (let a = 0; a < angle; a += 1) {
       // 90度回転
-      for (var x = 0; x < 5; x++) {
-        for (var y = 0; y < 5; y++) {
+      for (let x = 0; x < 5; x += 1) {
+        for (let y = 0; y < 5; y += 1) {
           cells2[y][x] = cells[5 - 1 - x][y];
         }
       }
-
-
 
       // cells2 -> cells
       cells = JSON.parse(JSON.stringify(cells2));
@@ -307,8 +465,8 @@ export default class Space21 {
 
     // 反転flgがあれば、反転させる
     if (flip) {
-      for (let x = 0; x < 5; x++) {
-        for (let y = 0; y < 5; y++) {
+      for (let x = 0; x < 5; x += 1) {
+        for (let y = 0; y < 5; y += 1) {
           cells2[y][x] = cells[y][4 - x];
         }
       }
@@ -316,30 +474,31 @@ export default class Space21 {
       cells = JSON.parse(JSON.stringify(cells2));
     }
 
-    var shape = [];
+    const shape = [];
 
     // ZZZ が入っている座標だけを抜き出す
-    for (let y = 0; y < 5; y++) {
-      for (let x = 0; x < 5; x++) {
+    for (let y = 0; y < 5; y += 1) {
+      for (let x = 0; x < 5; x += 1) {
         if (cells2[y][x].color != null && cells2[y][x].color === "ZZZ") {
-          var temp = [x, y];
+          const temp = [x, y];
           shape.push(temp);
         }
       }
     }
 
     // x、yの最小値を調べる
-    var minX = 99, minY = 99;
-    for (var i = 0; i < oldShape.length; i++) {
+    let minX = 99;
+    let minY = 99;
+    for (let i = 0; i < oldShape.length; i += 1) {
       if (shape[i][0] < minX) {
-        minX = shape[i][0];
+        minX = shape[i][define.SHAPE_INDEX_X];
       }
       if (shape[i][1] < minY) {
-        minY = shape[i][1];
+        minY = shape[i][define.SHAPE_INDEX_Y];
       }
     }
     // 最小値が０じゃない場合はずれてるので、最小値が０になるようずらす
-    for (i = 0; i < oldShape.length; i++) {
+    for (let i = 0; i < oldShape.length; i += 1) {
       if (minX > 0) {
         shape[i][0] -= minX;
       }
@@ -348,22 +507,28 @@ export default class Space21 {
       }
     }
 
-
     return shape;
-  }
-
+  };
 
   /**
    * ブロックを置けるかどうかのチェック
    */
-  private checkBlock = (index: number, x: number, y: number, cells: ift.BoardInfo, color: string, angle: number, flip: boolean) => {
-    var block = define.BLOCK_SHAPE[index];
+  private checkBlock = (
+    index: number,
+    x: number,
+    y: number,
+    cells: info.BoardInfo,
+    color: string,
+    angle: number,
+    flip: boolean
+  ) => {
+    let block = define.BLOCK_SHAPE[index];
     block = this.calcBlockShape(index, block, angle, flip);
-    var isCheck = false;
+    let isCheck = false;
 
-    for (var i = 0; i < block.length; i++) {
-      var newY = y + block[i][1];
-      var newX = x + block[i][0];
+    for (let i = 0; i < block.length; i += 1) {
+      const newY = y + block[i][1];
+      const newX = x + block[i][0];
 
       // はみ出てたらダメ！
       if (cells.length <= newY) {
@@ -379,7 +544,10 @@ export default class Space21 {
       }
 
       // 右隣が同じ色ならダメ
-      if (newX < cells[newY].length - 1 && cells[newY][newX + 1].color === color) {
+      if (
+        newX < cells[newY].length - 1 &&
+        cells[newY][newX + 1].color === color
+      ) {
         return false;
       }
       // 左隣が同じ色ならダメ
@@ -396,7 +564,11 @@ export default class Space21 {
       }
 
       // 右上が同じ色ならOK
-      if (newY > 0 && newX < cells[newY].length - 1 && cells[newY - 1][newX + 1].color === color) {
+      if (
+        newY > 0 &&
+        newX < cells[newY].length - 1 &&
+        cells[newY - 1][newX + 1].color === color
+      ) {
         isCheck = true;
       }
 
@@ -406,190 +578,354 @@ export default class Space21 {
       }
 
       // 右下が同じ色ならOK
-      if (newY < cells.length - 1 && newX < cells[newY].length - 1 && cells[newY + 1][newX + 1].color === color) {
+      if (
+        newY < cells.length - 1 &&
+        newX < cells[newY].length - 1 &&
+        cells[newY + 1][newX + 1].color === color
+      ) {
         isCheck = true;
       }
 
       // 左下が同じ色ならOK
-      if (newY < cells.length - 1 && newX > 0 && cells[newY + 1][newX - 1].color === color) {
+      if (
+        newY < cells.length - 1 &&
+        newX > 0 &&
+        cells[newY + 1][newX - 1].color === color
+      ) {
         isCheck = true;
       }
 
       // 四角を踏んでてらOK
-      if ((newX === 0 && newY === 0) || (newX === 0 && newY === cells[newY].length - 1)
-          || (newX === cells.length - 1 && newY === 0) || (newX === cells.length - 1 && newY === cells[newY].length - 1)) {
+      if (
+        (newX === 0 && newY === 0) ||
+        (newX === 0 && newY === cells[newY].length - 1) ||
+        (newX === cells.length - 1 && newY === 0) ||
+        (newX === cells.length - 1 && newY === cells[newY].length - 1)
+      ) {
         isCheck = true;
       }
     }
     return isCheck;
-  }
+  };
 
+  private makeKouho = (
+    spaceType: number,
+    color: string,
+    angle: number,
+    flip: boolean
+  ): info.KouhoInfo[] => {
+    const kouhoList: info.KouhoInfo[] = [];
+    const { board } = this.gameInfo;
 
-private makeKouho = (board: ift.BoardInfo, spaceType: number, color: string, angle: number, flip: boolean): ift.SelectInfo => {
-  var kouhoList:ift.KouhoInfo[] = [];
+    // 置ける場所の候補リスト
+    for (let y = 0; y < board.length; y += 1) {
+      for (let x = 0; x < board[y].length; x += 1) {
+        if (this.checkBlock(spaceType, x, y, board, color, angle, flip)) {
+          // 候補用の色を取得
+          const color2 = define.COLOR_SELECT;
 
-  console.log('makeKouho()...', spaceType, color, angle, flip);
+          // ここに置いた場合の絵を書く
+          const cells2 = JSON.parse(JSON.stringify(board));
+          this.drawBlock(spaceType, x, y, cells2, color2, angle, flip);
 
-  // var blocks = JSON.parse(JSON.stringify(player[game.nowPlayer].blocks));
-  // blocks[spaceType].color = COLOR_SELECT;
-  // var tegoma = makeNexts(blocks);
-
-
-  // 置ける場所の候補リスト
-  for (var y = 0; y < board.length; y++) {
-    for (var x = 0; x < board[y].length; x++) {
-      if (this.checkBlock(spaceType, x, y, board, color, angle, flip)) {
-
-        // 候補用の色を取得
-        var selectedColor = define.COLOR_SELECT;
-
-        // ここに置いた場合の絵を書く
-        var cells2 = JSON.parse(JSON.stringify(board));
-        this.drawBlock(spaceType, x, y, cells2, selectedColor, angle, flip);
-
-        // 候補をリストに追加
-        var kouhoItem = {
-          x,
-          y,
-          cells: cells2,
+          // 候補をリストに追加
+          const kouhoItem = {
+            x,
+            y,
+            cells: cells2,
+          };
+          kouhoList.push(kouhoItem);
         }
-        kouhoList.push(kouhoItem);
       }
     }
-  }
-
-  var cells = this.makeCells(5,5);
-  this.drawBlock(spaceType, 0, 0, cells, define.COLOR_SELECT, angle, flip);
-
-
-  return {
-    spaceType,
-    kouhoList,
-    board: cells,
-    angle,
-    flip,
+    return kouhoList;
   };
-}
 
-/**
- * 次へ進む
- */
-private goNext = (cpuCallback: ift.CpuCallback) => {
+  /**
+   * 指定したプレイヤーの手を計算する
+   *
+   * @param playerIndex プレイヤー番号を指定
+   * @param isAll       trueであれば全ての手を計算、falseであれば１だけ探す
+   */
+  private calcHands = (
+    playerIndex: info.PlayerIndex,
+    isAll: boolean
+  ): info.SpaceInfo[] => {
+    const handList: info.SpaceInfo[] = [];
 
-  // ゲーム終了している場合は何もしない
-  if (this.gameInfo.nowPlayer < 0) {
-    return;
-  }
-  console.log('CPU START: this.gameInfo=' + this.gameInfo);
+    const p = this.gameInfo.players[this.gameInfo.nowPlayer];
 
-
-  var p = this.gameInfo.players[this.gameInfo.nowPlayer];
-
-  // セットしていないスペースのリストを作る
-  var notSetSpaces = [];
-  for (var i = 0; i < p.spaces.length; i++) {
-    if (p.spaces[i].isSet === false) {
-      notSetSpaces.push(p.spaces[i]);
+    // セットしていないスペースのリストを作る
+    const notSetSpaces = [];
+    for (let i = 0; i < p.spaces.length; i += 1) {
+      if (p.spaces[i].isSet === false) {
+        notSetSpaces.push(p.spaces[i]);
+      }
     }
-  }
 
-  // ブロック数が多い順に並べる
-  notSetSpaces.sort((a, b) => {
-    return define.BLOCK_SHAPE[b.type].length - define.BLOCK_SHAPE[a.type].length;
-  });
+    // ブロック数が多い順に並べる
+    notSetSpaces.sort((a, b) => {
+      return (
+        define.BLOCK_SHAPE[b.type].length - define.BLOCK_SHAPE[a.type].length
+      );
+    });
 
-
-  for (var b = 0; b < notSetSpaces.length; b++) {
-    var space = notSetSpaces[b];
-    // 全部のセルをチェックしていく
-    for (var y = 0; y < this.gameInfo.board.length; y++) {
-      for (var x = 0; x < this.gameInfo.board[y].length; x++) {
-
-        // 回転させてチェックする
-        for (var angle = 0; angle < 4; angle++) {
-          for (i = 0; i < 2; i++) {
-            // チェック
-            if (this.checkBlock(space.type, x, y, this.gameInfo.board, p.color, angle, (i === 1))) {
-              // CPUの場合
-              if (this.gameInfo.nowPlayer !== this.gameInfo.loginPlayer) {
-                var block = p.spaces[space.type];
-                block.x = x;
-                block.y = y;
-                block.angle = angle;
-                block.flip = i === 1;
-                block.isSet = true;
-                console.log('decideSpace()... change block', block);
-
-                // ボードにスペースを書き込む
-                this.drawBlock(space.type, x, y, this.gameInfo.board, p.color, block.angle, block.flip);
-
-                // ポイントを追加
-                p.point += define.BLOCK_SHAPE[space.type].length;
-                p.blockZansu--;
-
-                // 次のプレイヤー
-                this.gameInfo.nowPlayer = this.calcNextPlayer();
-
-                // 通知
-                cpuCallback(this.gameInfo);
-
-              } else {
-                console.log('login user is not pass');
-                return;
+    for (let b = 0; b < notSetSpaces.length; b += 1) {
+      const space = notSetSpaces[b];
+      // 全部のセルをチェックしていく
+      for (let y = 0; y < this.gameInfo.board.length; y += 1) {
+        for (let x = 0; x < this.gameInfo.board[y].length; x += 1) {
+          // 回転させてチェックする
+          for (let angle = 0; angle < 4; angle += 1) {
+            for (let i = 0; i < 2; i += 1) {
+              // チェック
+              if (
+                this.checkBlock(
+                  space.type,
+                  x,
+                  y,
+                  this.gameInfo.board,
+                  p.color,
+                  angle,
+                  i === 1
+                )
+              ) {
+                const hand: info.SpaceInfo = {
+                  type: space.type,
+                  x,
+                  y,
+                  angle,
+                  flip: i === 1,
+                  isSet: false,
+                  color: p.color,
+                };
+                handList.push(hand);
+                if (isAll === false) {
+                  return handList;
+                }
               }
-              console.log('CPU END');
-
-              if (this.gameInfo.nowPlayer === this.gameInfo.loginPlayer) {
-                this.goNext(cpuCallback);
-              } else {
-                // ２秒待つ
-                const timeoutId = setTimeout(() => {
-                  clearTimeout(timeoutId);
-                  this.goNext(cpuCallback);
-                }, define.CPU_TIMER_MSEC);
-              }
-              return;
             }
           }
         }
       }
     }
-  }
 
-  // パス
-  p.pass = true;
+    return handList;
+  };
 
-  // 次のプレイヤー
-  this.gameInfo.nowPlayer = this.calcNextPlayer();
+  /**
+   * 次へ進む
+   */
+  private goNext = (cpuCallback: info.CpuCallback) => {
+    // ゲーム終了している場合は何もしない
+    if (this.gameInfo.nowPlayer < 0) {
+      return;
+    }
+    console.log(`CPU START: this.gameInfo=${this.gameInfo}`);
 
-  // 通知
-  cpuCallback(this.gameInfo);
-  console.log('CPU END2');
+    const p = this.gameInfo.players[this.gameInfo.nowPlayer];
 
-  if (this.gameInfo.nowPlayer === this.gameInfo.loginPlayer) {
-    this.goNext(cpuCallback);
-  } else {
-    // ２秒待つ
-    const timeoutId = setTimeout(() => {
-      clearTimeout(timeoutId);
+    // セットしていないスペースのリストを作る
+    const notSetSpaces = [];
+    for (let i = 0; i < p.spaces.length; i += 1) {
+      if (p.spaces[i].isSet === false) {
+        notSetSpaces.push(p.spaces[i]);
+      }
+    }
+
+    // ブロック数が多い順に並べる
+    notSetSpaces.sort((a, b) => {
+      return (
+        define.BLOCK_SHAPE[b.type].length - define.BLOCK_SHAPE[a.type].length
+      );
+    });
+
+    for (let b = 0; b < notSetSpaces.length; b += 1) {
+      const space = notSetSpaces[b];
+      // 全部のセルをチェックしていく
+      for (let y = 0; y < this.gameInfo.board.length; y += 1) {
+        for (let x = 0; x < this.gameInfo.board[y].length; x += 1) {
+          // 回転させてチェックする
+          for (let angle = 0; angle < 4; angle += 1) {
+            for (let i = 0; i < 2; i += 1) {
+              // チェック
+              if (
+                this.checkBlock(
+                  space.type,
+                  x,
+                  y,
+                  this.gameInfo.board,
+                  p.color,
+                  angle,
+                  i === 1
+                )
+              ) {
+                // CPUの場合
+                if (this.gameInfo.nowPlayer !== this.gameInfo.loginPlayer) {
+                  const block = p.spaces[space.type];
+                  block.x = x;
+                  block.y = y;
+                  block.angle = angle;
+                  block.flip = i === 1;
+                  block.isSet = true;
+                  console.log("decideSpace()... change block", block);
+
+                  // ボードにスペースを書き込む
+                  this.drawBlock(
+                    space.type,
+                    x,
+                    y,
+                    this.gameInfo.board,
+                    p.color,
+                    block.angle,
+                    block.flip
+                  );
+
+                  // ポイントを追加
+                  p.point += define.BLOCK_SHAPE[space.type].length;
+                  p.blockZansu -= 1;
+
+                  // 次のプレイヤー
+                  this.gameInfo.nowPlayer = this.calcNextPlayer();
+
+                  // 通知
+                  cpuCallback(this.gameInfo);
+                } else {
+                  console.log("login user is not pass");
+                  return;
+                }
+                console.log("CPU END");
+
+                if (this.gameInfo.nowPlayer === this.gameInfo.loginPlayer) {
+                  this.goNext(cpuCallback);
+                } else {
+                  // ２秒待つ
+                  const timeoutId = setTimeout(() => {
+                    clearTimeout(timeoutId);
+                    this.goNext(cpuCallback);
+                  }, define.CPU_TIMER_MSEC);
+                }
+                return;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // パス
+    p.pass = true;
+
+    // 次のプレイヤー
+    this.gameInfo.nowPlayer = this.calcNextPlayer();
+
+    // 通知
+    cpuCallback(this.gameInfo);
+    console.log("CPU END2");
+
+    if (this.gameInfo.nowPlayer === this.gameInfo.loginPlayer) {
       this.goNext(cpuCallback);
-    }, define.CPU_TIMER_MSEC);
-  }
-};
-
-private calcNextPlayer = () => {
-
-  var next = this.gameInfo.nowPlayer;
-  for (var i = 0; i < this.gameInfo.players.length; i++) {
-    next++;
-    if (next >= 4) {
-      next = 0;
+    } else {
+      // ２秒待つ
+      const timeoutId = setTimeout(() => {
+        clearTimeout(timeoutId);
+        this.goNext(cpuCallback);
+      }, define.CPU_TIMER_MSEC);
     }
-    if (this.gameInfo.players[next].pass === false) {
-      return next;
-    }
+  };
 
-  }
-  return -1;
-};
+  private calcNextPlayer = () => {
+    let next = this.gameInfo.nowPlayer;
+    for (let i = 0; i < this.gameInfo.players.length; i += 1) {
+      next += 1;
+      if (next >= 4) {
+        next = 0;
+      }
+      if (this.gameInfo.players[next].pass === false) {
+        return next;
+      }
+    }
+    return -1;
+  };
+
+  private makeNexts = (blocks: info.SpaceInfo[]): info.BoardInfo => {
+    const cells: info.TegomaInfo = this.makeCells(20, 12);
+
+    for (let i = 0; i < blocks.length; i += 1) {
+      if (blocks[i].isSet === false) {
+        this.drawNextBlock(blocks[i], cells, blocks[i].color);
+      }
+    }
+    console.log("makeNexts...", cells);
+    return cells;
+  };
+
+  private makeCells = (w: number, h: number) => {
+    const cells = [];
+    for (let y = 0; y < h; y += 1) {
+      const row = [];
+      for (let x = 0; x < w; x += 1) {
+        const cell = {
+          color: define.COLOR_DEFAULT,
+          blockType: -1,
+          isSet: false,
+        };
+        row.push(cell);
+      }
+      cells.push(row);
+    }
+    return cells;
+  };
+
+  /**
+   * プレイヤーの初期情報を作成
+   * @param playerTypes プレイヤー種別の配列
+   */
+  private makePlayerInfo = (
+    playerTypes: info.PlayerType[]
+  ): info.PlayerInfo[] => {
+    const players: info.PlayerInfo[] = [];
+    const colors2 = define.COLORS;
+    let userCount = 0;
+    let cpuCount = 0;
+    for (let i = 0; i < 4; i += 1) {
+      const spaces: info.SpaceInfo[] = [];
+
+      for (let b = 0; b < define.BLOCK_SHAPE.length; b += 1) {
+        const block: info.SpaceInfo = {
+          type: b,
+          isSet: false,
+          color: colors2[i],
+          x: -1,
+          y: -1,
+          angle: 0,
+          flip: false,
+        };
+        spaces.push(block);
+      }
+
+      let name: string;
+      if (playerTypes[i] === info.PlayerType.HUMAN) {
+        userCount += 1;
+        name = `USER${userCount}`;
+      } else {
+        cpuCount += 1;
+        name = `CPU${cpuCount}`;
+      }
+
+      const player: info.PlayerInfo = {
+        name,
+        playerType: playerTypes[i],
+        color: colors2[i],
+        blockZansu: 21,
+        point: 0,
+        pass: false,
+        spaces,
+        tegoma: this.makeNexts(spaces),
+        selectInfo: null,
+      };
+      players.push(player);
+    }
+    return players;
+  };
 }
