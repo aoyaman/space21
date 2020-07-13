@@ -56,7 +56,6 @@ const GamePlayPcComponent: React.FC<Props> = ({
 }) => {
   const classes = useStyles();
 
-  console.log("gameInfo=", gameInfo);
   return (
     <>
       <CssBaseline />

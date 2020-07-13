@@ -25,7 +25,6 @@ const GamePlayComponent: React.FC<Props> = ({
   onFlip,
   onNotSelect,
 }) => {
-  console.log("GamePlayComponent:gameInfo=", gameInfo);
   return (
     <>
       {/* スマホ用レイアウト */}

@@ -14,13 +14,9 @@ import {
 } from "../actions";
 import GamePlayComponent from "../components/GamePlayComponent";
 
-const mapStateToProps = (state: AllState) => {
-  console.log("GamePlayerContainers...", state);
-  const value = {
-    gameInfo: state.gameInfo,
-  };
-  return value;
-};
+const mapStateToProps = (state: AllState) => ({
+  gameInfo: state.gameInfo,
+});
 
 const mapDispatchToProps = (
   dispatch: ThunkDispatch<AllState, undefined, Action>

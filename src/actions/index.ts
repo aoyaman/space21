@@ -37,7 +37,7 @@ const onRecvGameInfo = (
 ) => {
   dispatch({
     type: types.CHANGE_GAME_INFO,
-    ...gameInfo,
+    gameInfo,
   });
 
   if (gameInfo.status === info.GameStatus.WAIT_CPU) {
@@ -90,11 +90,9 @@ export const selectKouho = (spaceType: info.SpaceType) => (
   space21
     .onSelectSpace(spaceType, gameInfo.loginPlayer)
     .then((gameInfo2: info.GameInfo): void => {
-
-      console.log("onSelectSpace()...then...", gameInfo2);
       dispatch({
         type: types.CHANGE_GAME_INFO,
-        ...gameInfo2,
+        gameInfo: gameInfo2,
       });
     });
 };
@@ -111,7 +109,7 @@ export const rotateSpace = () => (
   space21.rotate(gameInfo.loginPlayer).then((gameInfo2: info.GameInfo) => {
     dispatch({
       type: types.CHANGE_GAME_INFO,
-      ...gameInfo2,
+      gameInfo: gameInfo2,
     });
   });
 };
@@ -127,7 +125,7 @@ export const flip = () => (
   space21.rotate(gameInfo.loginPlayer).then((gameInfo2: info.GameInfo) => {
     dispatch({
       type: types.CHANGE_GAME_INFO,
-      ...gameInfo2,
+      gameInfo: gameInfo2,
     });
   });
 };
