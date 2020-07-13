@@ -1,21 +1,23 @@
-import React from 'react'
+import React from "react";
 
-import { AppState } from '../entity/store';
-import StartContainer from '../containers/StartContainer';
-import GamePlayContainer from '../containers/GamePlayContainer';
+import { AppState } from "../entity/store";
+import StartContainer from "../containers/StartContainer";
+import GamePlayContainer from "../containers/GamePlayContainer";
 
 type Props = {
-  app: AppState
-}
+  app?: AppState;
+};
 
 const AppComponent: React.FC<Props> = ({ app }) => {
-
+  if (!app) {
+    return <div>now loading...</div>;
+  }
   return (
     <div>
-      {app.page==="start" && <StartContainer></StartContainer>}
-      {app.page==="game" && <GamePlayContainer></GamePlayContainer>}
+      {app.page === "start" && <StartContainer />}
+      {app.page === "game" && <GamePlayContainer />}
     </div>
   );
 };
 
-export default AppComponent
+export default AppComponent;

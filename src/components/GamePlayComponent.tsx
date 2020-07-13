@@ -2,74 +2,56 @@ import React from "react";
 
 import MediaQuery from "react-responsive";
 
-import { GameState, BoardState, PlayerState, TegomaState, KouhoState, SelectState } from '../entity/store';
+import * as info from "../domain/GameInfo";
 import GamePlayPhoneComponent from "./GamePlayPhoneComponent";
 import GamePlayPcComponent from "./GamePlayPcComponent";
 
-
 type Props = {
-  game: GameState
-  board: BoardState
-  players: PlayerState
-  tegoma: TegomaState
-  kouho: KouhoState
-  select: SelectState
-  onSelectKouho: (blockType: number) => void
-  onRestart: () => void
-  onDecide: (x: number, y: number) => void
-  onRotate: () => void
-  onFlip: () => void
-  waitCpu: () => void
-  decidePass: () => void
-  onNotSelect: () => void
+  gameInfo: info.GameInfo;
+  onSelectKouho: (blockType: number) => void;
+  onRestart: () => void;
+  onDecide: (x: number, y: number) => void;
+  onRotate: () => void;
+  onFlip: () => void;
+  onNotSelect: () => void;
 };
 
-const GamePlayComponent: React.FC<Props> = ({ game, board, players, tegoma, kouho, select, onSelectKouho, onRestart, onDecide, onRotate, onFlip, waitCpu, decidePass, onNotSelect }) => {
-
+const GamePlayComponent: React.FC<Props> = ({
+  gameInfo,
+  onSelectKouho,
+  onRestart,
+  onDecide,
+  onRotate,
+  onFlip,
+  onNotSelect,
+}) => {
   return (
-    <React.Fragment>
-
+    <>
       {/* スマホ用レイアウト */}
       <MediaQuery query="(max-width: 480px)">
         <GamePlayPhoneComponent
-          game={game}
-          board={board}
-          players={players}
-          tegoma={tegoma}
-          kouho={kouho}
-          select={select}
+          gameInfo={gameInfo}
           onSelectKouho={onSelectKouho}
           onRestart={onRestart}
           onDecide={onDecide}
           onRotate={onRotate}
           onFlip={onFlip}
-          waitCpu={waitCpu}
-          decidePass={decidePass}
           onNotSelect={onNotSelect}
-          />
+        />
       </MediaQuery>
 
       <MediaQuery query="(min-width: 481px)">
-          <GamePlayPcComponent
-            game={game}
-            board={board}
-            players={players}
-            tegoma={tegoma}
-            kouho={kouho}
-            select={select}
-            onSelectKouho={onSelectKouho}
-            onRestart={onRestart}
-            onDecide={onDecide}
-            onRotate={onRotate}
-            onFlip={onFlip}
-            waitCpu={waitCpu}
-            decidePass={decidePass}
-            />
+        <GamePlayPcComponent
+          gameInfo={gameInfo}
+          onSelectKouho={onSelectKouho}
+          onRestart={onRestart}
+          onDecide={onDecide}
+          onRotate={onRotate}
+          onFlip={onFlip}
+        />
       </MediaQuery>
-
-    </React.Fragment>
+    </>
   );
 };
-
 
 export default GamePlayComponent;

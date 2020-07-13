@@ -1,23 +1,19 @@
-
-import { START_GAME, END_GAME, AppActionTypes } from '../actions';
-import { AppState } from '../entity/store';
+import { START_GAME, ActionStartGame } from "../actions/types";
+import { AppState } from "../entity/store";
 
 const initialState: AppState = {
   page: "start",
-}
+};
+type AppActionTypes = ActionStartGame;
 
-const app = (state = initialState, action: AppActionTypes) => {
+const app = (state = initialState, action: AppActionTypes): AppState => {
   switch (action.type) {
     case START_GAME:
-      return Object.assign({}, state, {page: "game"});
+      return { ...state, page: "game" };
 
-    case END_GAME:
-      return Object.assign({}, state, {page: "start"});
     default:
-      return state
+      return state;
   }
-}
+};
 
-
-
-export default app
+export default app;
