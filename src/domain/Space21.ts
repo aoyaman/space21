@@ -115,7 +115,15 @@ export default class Space21 {
       }
 
       const selectBoard: info.SelectBoard = this.makeCells(5, 5);
-      this.drawBlock(spaceType, 0, 0, selectBoard, define.COLOR_SELECT, 0, false);
+      this.drawBlock(
+        spaceType,
+        0,
+        0,
+        selectBoard,
+        define.COLOR_SELECT,
+        0,
+        false
+      );
 
       playerInfo.selectInfo = {
         spaceType,
