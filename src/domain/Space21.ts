@@ -115,7 +115,7 @@ export default class Space21 {
       }
 
       const selectBoard: info.SelectBoard = this.makeCells(5, 5);
-      this.drawBlock(spaceType, 0, 0, board, define.COLOR_SELECT, 0, false);
+      this.drawBlock(spaceType, 0, 0, selectBoard, define.COLOR_SELECT, 0, false);
 
       playerInfo.selectInfo = {
         spaceType,
@@ -232,6 +232,9 @@ export default class Space21 {
 
       // 残りの手があるかどうかを調べる
       p.pass = this.calcHands(this.gameInfo.nowPlayer, false).length === 0;
+
+      // 選択状態を解除
+      p.selectInfo = null;
 
       // 次のプレイヤー
       this.gameInfo.nowPlayer = this.calcNextPlayer();
@@ -398,7 +401,7 @@ export default class Space21 {
     index: number,
     x: number,
     y: number,
-    cells: info.BoardInfo,
+    cells: info.BoardInfo | info.SelectBoard,
     color: string,
     angle: number,
     flip: boolean
