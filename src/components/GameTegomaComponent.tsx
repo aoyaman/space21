@@ -46,7 +46,7 @@ const GameTegomaComponent: React.FC<Props> = ({ board, onSelect, width }) => {
       for (let x = 0; x < board[y].length; x += 1) {
         const cell = board[y][x];
         list.push(
-          <>
+          <React.Fragment key={`x${x}y${y}`}>
             <div
               className={classes.cell}
               style={{
@@ -69,9 +69,8 @@ const GameTegomaComponent: React.FC<Props> = ({ board, onSelect, width }) => {
               }}
               role="button"
               tabIndex={0}
-              key={`x${x}y${y}`}
             />
-          </>
+          </React.Fragment>
         );
       }
     }
