@@ -7,13 +7,21 @@ import FormControl from "@material-ui/core/FormControl";
 
 import { Select, MenuItem } from "@material-ui/core";
 import titleImage from "../image/space21_image.jpg";
+import * as info from "../domain/GameInfo";
 
 type Props = {
   onStart: () => void;
 };
 
+
+
 const StartComponent: React.FC<Props> = ({ onStart }) => {
-  const [age, setAge] = useState("20");
+  const [players, setPlayers] = useState([
+    info.PlayerType.HUMAN,
+    info.PlayerType.CPU,
+    info.PlayerType.CPU,
+    info.PlayerType.CPU,
+  ]);
 
   return (
     <Grid
@@ -30,24 +38,29 @@ const StartComponent: React.FC<Props> = ({ onStart }) => {
         <Box m={1}>
           <img src={titleImage} alt="タイトル" width="100%" />
         </Box>
+        <Box m={1}>
+          <FormControl style={{ textAlign: "left" }}>
+            {players.map((player, index) => (
+              <span>P{index+1} : &nbsp;
+              <Select
+                labelId="demo-simple-select-label"
+                id="demo-simple-select"
+                value={player}
+                onChange={(event: React.ChangeEvent<{ value: unknown }>) => {
+                  players[index] = event.target.value as info.PlayerType;
+                  console.log(players);
+                  setPlayers(players);
+                }}
+              >
+                <MenuItem value={info.PlayerType.CPU}>CPU</MenuItem>
+                <MenuItem value={info.PlayerType.HUMAN}>HUMAN</MenuItem>
+              </Select>
+              </span>
+            ))}
+          </FormControl>
+        </Box>
 
         <Box m={1}>
-
-          <FormControl>
-            <Select
-              labelId="demo-simple-select-label"
-              id="demo-simple-select"
-              value={age}
-              onChange={(event: React.ChangeEvent<{ value: unknown }>) => {
-                setAge(event.target.value as string);
-              }}
-            >
-              <MenuItem value={10}>Ten</MenuItem>
-              <MenuItem value={20}>Twenty</MenuItem>
-              <MenuItem value={30}>Thirty</MenuItem>
-            </Select>
-          </FormControl>
-
           <Button variant="contained" color="primary" onClick={onStart}>
             Start
           </Button>

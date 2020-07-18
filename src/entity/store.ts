@@ -1,4 +1,4 @@
-import { GameInfo } from "../domain/GameInfo";
+import { GameInfo, PlayerType } from "../domain/GameInfo";
 
 /**
  * アプリの制御用データ
@@ -12,6 +12,20 @@ export interface AppState {
  */
 export type GameInfoState = GameInfo;
 
+/**
+ * プレイヤー種別選択用
+ */
+export interface PlayerSelect {
+  name: string
+  playerType: PlayerType
+}
+
+/**
+ * スタート画面
+ */
+export interface StartState {
+  players: PlayerSelect[]
+}
 // /**
 //  * ゲーム進行情報
 //  */

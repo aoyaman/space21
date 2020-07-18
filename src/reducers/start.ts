@@ -1,0 +1,25 @@
+import { CHANGE_PLAYER_SELECT, ActionChangePlayerSelect } from "../actions/types";
+import { StartState, PlayerSelect } from "../entity/store";
+import { PlayerType } from '../domain/GameInfo';
+
+const initialState: StartState = {
+  players: [
+    { name: "P1", playerType: PlayerType.HUMAN },
+    { name: "P2", playerType: PlayerType.CPU },
+    { name: "P3", playerType: PlayerType.CPU },
+    { name: "P4", playerType: PlayerType.CPU },
+  ]
+};
+type ActionTypes = ActionChangePlayerSelect;
+
+const start = (state = initialState, action: ActionTypes): StartState => {
+  switch (action.type) {
+    case CHANGE_PLAYER_SELECT:
+      return { ...state, page: "game" };
+
+    default:
+      return state;
+  }
+};
+
+export default start;
