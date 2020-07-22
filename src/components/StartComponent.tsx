@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
@@ -8,21 +8,19 @@ import FormControl from "@material-ui/core/FormControl";
 import { Select, MenuItem } from "@material-ui/core";
 import titleImage from "../image/space21_image.jpg";
 import * as info from "../domain/GameInfo";
+import { StartState } from "../entity/store";
 
 type Props = {
+  start: StartState;
   onStart: () => void;
+  onChangePlayerType: (index: number, type: info.PlayerType) => void;
 };
 
-
-
-const StartComponent: React.FC<Props> = ({ onStart }) => {
-  const [players, setPlayers] = useState([
-    info.PlayerType.HUMAN,
-    info.PlayerType.CPU,
-    info.PlayerType.CPU,
-    info.PlayerType.CPU,
-  ]);
-
+const StartComponent: React.FC<Props> = ({
+  start,
+  onStart,
+  onChangePlayerType,
+}) => {
   return (
     <Grid
       container
@@ -40,21 +38,23 @@ const StartComponent: React.FC<Props> = ({ onStart }) => {
         </Box>
         <Box m={1}>
           <FormControl style={{ textAlign: "left" }}>
-            {players.map((player, index) => (
-              <span>P{index+1} : &nbsp;
-              <Select
-                labelId="demo-simple-select-label"
-                id="demo-simple-select"
-                value={player}
-                onChange={(event: React.ChangeEvent<{ value: unknown }>) => {
-                  players[index] = event.target.value as info.PlayerType;
-                  console.log(players);
-                  setPlayers(players);
-                }}
-              >
-                <MenuItem value={info.PlayerType.CPU}>CPU</MenuItem>
-                <MenuItem value={info.PlayerType.HUMAN}>HUMAN</MenuItem>
-              </Select>
+            {start.players.map((p, index) => (
+              <span key={p.name}>
+                {p.name} : &nbsp;
+                <Select
+                  labelId="demo-simple-select-label"
+                  id="demo-simple-select"
+                  value={p.playerType}
+                  onChange={(event: React.ChangeEvent<{ value: unknown }>) => {
+                    onChangePlayerType(
+                      index,
+                      event.target.value as info.PlayerType
+                    );
+                  }}
+                >
+                  <MenuItem value={info.PlayerType.CPU}>CPU</MenuItem>
+                  <MenuItem value={info.PlayerType.HUMAN}>HUMAN</MenuItem>
+                </Select>
               </span>
             ))}
           </FormControl>

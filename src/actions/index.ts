@@ -6,22 +6,6 @@ import * as info from "../domain/GameInfo";
 import { AllState } from "../entity/store";
 import * as types from "./types";
 
-/**
- * ゲーム開始
- */
-export const startGame = () => (dispatch: Dispatch): void => {
-  const playerTypes: info.PlayerType[] = [
-    info.PlayerType.HUMAN,
-    info.PlayerType.CPU,
-    info.PlayerType.CPU,
-    info.PlayerType.CPU,
-  ];
-  const space21: Space21 = new Space21(undefined, playerTypes);
-  dispatch({
-    type: types.START_GAME,
-    gameInfo: space21.getInfo(),
-  });
-};
 
 /**
  * Space21からのGameInfoを受け取った時の処理
@@ -50,6 +34,37 @@ const onRecvGameInfo = (
     }, gameInfo.cpuWaitMsec);
   }
 };
+
+/**
+ * ゲーム開始
+ */
+export const startGame = () => (
+  dispatch: Dispatch,
+  getState: () => AllState
+): void => {
+  const { start } = getState();
+  const playerTypes: info.PlayerType[] = [
+    start.players[0].playerType,
+    start.players[1].playerType,
+    start.players[2].playerType,
+    start.players[3].playerType,
+  ];
+  const space21: Space21 = new Space21(undefined, playerTypes);
+  dispatch({
+    type: types.START_GAME,
+    gameInfo: space21.getInfo(),
+  });
+  if (space21.getInfo().status === info.GameStatus.WAIT_CPU) {
+    const timeoutId = setTimeout(() => {
+      clearTimeout(timeoutId);
+
+      space21.goCpu().then((gameInfo2: info.GameInfo): void => {
+        onRecvGameInfo(dispatch, space21, gameInfo2);
+      });
+    }, space21.getInfo().cpuWaitMsec);
+  }
+};
+
 
 /**
  * 置くスペースを決定
@@ -127,5 +142,16 @@ export const flip = () => (
       type: types.CHANGE_GAME_INFO,
       gameInfo: gameInfo2,
     });
+  });
+};
+
+export const onChangePlayerType = (
+  index: number,
+  playerType: info.PlayerType
+) => (dispatch: Dispatch): void => {
+  dispatch({
+    type: types.CHANGE_PLAYER_SELECT,
+    index,
+    playerType,
   });
 };

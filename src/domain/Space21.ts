@@ -370,7 +370,10 @@ export default class Space21 {
 
     const nowPlayer = 0;
     const gameInfo: info.GameInfo = {
-      status: info.GameStatus.WAIT_USER,
+      status:
+        players[0].playerType === info.PlayerType.HUMAN
+          ? info.GameStatus.WAIT_USER
+          : info.GameStatus.WAIT_CPU,
       date: new Date(),
       nowPlayer,
       loginPlayer: 0,

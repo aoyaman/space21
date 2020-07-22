@@ -16,16 +16,17 @@ export type GameInfoState = GameInfo;
  * プレイヤー種別選択用
  */
 export interface PlayerSelect {
-  name: string
-  playerType: PlayerType
+  name: string;
+  playerType: PlayerType;
 }
 
 /**
  * スタート画面
  */
 export interface StartState {
-  players: PlayerSelect[]
+  players: PlayerSelect[];
 }
+
 // /**
 //  * ゲーム進行情報
 //  */
@@ -72,4 +73,5 @@ export interface StartState {
 export interface AllState {
   app: AppState;
   gameInfo: GameInfoState;
+  start: StartState;
 }
