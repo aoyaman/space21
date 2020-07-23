@@ -8,6 +8,7 @@ export const COLOR_SELECT = "c71585"; // mediumvioletred
 export const SHAPE_INDEX_X = 0;
 export const SHAPE_INDEX_Y = 1;
 
+
 export const BLOCK_SHAPE = [
   [
     [0, 0],
