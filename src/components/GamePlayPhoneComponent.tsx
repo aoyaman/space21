@@ -7,6 +7,8 @@ import Button from "@material-ui/core/Button";
 import { makeStyles } from "@material-ui/core/styles";
 
 import * as info from "../domain/GameInfo";
+import { SpaceType } from "../domain/SpaceType";
+
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
 import SelectedSpaceComponent from "./SelectedSpaceComponent";
@@ -35,7 +37,7 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = {
   gameInfo: info.GameInfo;
-  onSelectKouho: (blockType: number) => void;
+  onSelectKouho: (spaceType: SpaceType) => void;
   onRestart: () => void;
   onDecide: (x: number, y: number) => void;
   onRotate: () => void;

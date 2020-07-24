@@ -5,7 +5,7 @@ import Space21 from "../domain/Space21";
 import * as info from "../domain/GameInfo";
 import { AllState } from "../entity/store";
 import * as types from "./types";
-
+import { SpaceType } from "../domain/SpaceType";
 
 /**
  * Space21からのGameInfoを受け取った時の処理
@@ -65,7 +65,6 @@ export const startGame = () => (
   }
 };
 
-
 /**
  * 置くスペースを決定
  */
@@ -96,7 +95,7 @@ export const notSelect = () => (dispatch: Dispatch): void => {
 /**
  * 候補を選択
  */
-export const selectKouho = (spaceType: info.SpaceType) => (
+export const selectKouho = (spaceType: SpaceType) => (
   dispatch: Dispatch,
   getState: () => AllState
 ): void => {

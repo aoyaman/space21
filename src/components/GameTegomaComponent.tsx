@@ -3,6 +3,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 
 import * as info from "../domain/GameInfo";
+import { SpaceType } from "../domain/SpaceType";
 
 const BOARD_MAX_WIDTH = 500;
 
@@ -33,7 +34,7 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   board: info.BoardInfo;
-  onSelect?: ((blockType: number) => void) | undefined;
+  onSelect?: ((spaceType: SpaceType) => void) | undefined;
   width?: number | undefined;
 };
 
@@ -51,18 +52,19 @@ const GameTegomaComponent: React.FC<Props> = ({ board, onSelect, width }) => {
               className={classes.cell}
               style={{
                 backgroundColor: `#${cell.color}`,
-                width: width ? `${width / 20}px` : "4vw",
-                height: width ? `${width / 20}px` : "4vw",
+                width: width ? `${width / 21}px` : "4vw",
+                height: width ? `${width / 21}px` : "4vw",
                 maxWidth: width
-                  ? `${width / 20}px`
+                  ? `${width / 21}px`
                   : `${BOARD_MAX_WIDTH / board[y].length}px`,
                 maxHeight: width
-                  ? `${width / 20}px`
+                  ? `${width / 21}px`
                   : `${BOARD_MAX_WIDTH / board[y].length}px`,
               }}
               onClick={(e) => {
                 console.log("onClick()...", e);
-                if (cell.blockType >= 0 && onSelect) onSelect(cell.blockType);
+                if (cell.spaceType != null && onSelect)
+                  onSelect(cell.spaceType);
               }}
               onKeyUp={(e) => {
                 console.log("onKeyUp", e);

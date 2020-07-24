@@ -1,5 +1,8 @@
 import * as info from "./GameInfo";
-import * as define from "./define";
+import * as COLOR from "./color";
+import * as type from "./SpaceType";
+
+const CPU_TIMER_MSEC = 3000;
 
 export default class Space21 {
   private gameInfo: info.GameInfo;
@@ -44,12 +47,12 @@ export default class Space21 {
   /**
    * 未設定のスペースの中から１つ選ぶ
    *
-   * @param spaceType: SpaceType      スペースの種類
+   * @param spaceIndex: number      スペースのindex
    * @param playerIndex: PlayerIndex  対象となるプレイヤー
    * @return SelectInfo
    */
   public onSelectSpace = (
-    spaceType: info.SpaceType,
+    spaceType: type.SpaceType,
     playerIndex: info.PlayerIndex
   ): Promise<info.GameInfo> => {
     const promise = new Promise<info.GameInfo>((resolve, reject) => {
@@ -64,12 +67,12 @@ export default class Space21 {
         return;
       }
 
-      if (playerInfo.spaces[spaceType].isSet === true) {
+      if (playerInfo.spaces[spaceType.index].isSet === true) {
         reject(new Error("onSelectSpace() 既にセットされています"));
         return;
       }
 
-      // playerInfo.spaces[spaceType].color = define.COLOR_SELECT;
+      // playerInfo.spaces[spaceType].color = COLOR.SELECT;
       // playerInfo.tegoma = this.makeNexts(playerInfo.spaces);
 
       const { board } = this.gameInfo;
@@ -89,7 +92,7 @@ export default class Space21 {
             )
           ) {
             // 候補用の色を取得
-            const color = define.COLOR_SELECT;
+            const color = COLOR.SELECT;
 
             // ここに置いた場合の絵を書く
             const cells2 = JSON.parse(JSON.stringify(board));
@@ -115,15 +118,7 @@ export default class Space21 {
       }
 
       const selectBoard: info.SelectBoard = this.makeCells(5, 5);
-      this.drawBlock(
-        spaceType,
-        0,
-        0,
-        selectBoard,
-        define.COLOR_SELECT,
-        0,
-        false
-      );
+      this.drawBlock(spaceType, 0, 0, selectBoard, COLOR.SELECT, 0, false);
 
       playerInfo.selectInfo = {
         spaceType,
@@ -212,7 +207,7 @@ export default class Space21 {
         return;
       }
 
-      const spaceInfo = p.spaces[selectInfo.spaceType];
+      const spaceInfo = p.spaces[selectInfo.spaceType.index];
       spaceInfo.x = x;
       spaceInfo.y = y;
       spaceInfo.angle = selectInfo.angle;
@@ -232,7 +227,7 @@ export default class Space21 {
       );
 
       // ポイントを追加
-      p.point += define.BLOCK_SHAPE[selectInfo.spaceType].length;
+      p.point += selectInfo.spaceType.point;
       p.blockZansu -= 1;
 
       // 手駒リストを修正
@@ -299,15 +294,12 @@ export default class Space21 {
         reject(new Error("onDecide() CPUではありません"));
       }
 
-      const hands: info.SpaceInfo[] = this.calcHands(
-        this.gameInfo.nowPlayer,
-        false
-      );
+      const hands: info.Hand[] = this.calcHands(this.gameInfo.nowPlayer, false);
       if (hands.length === 0) {
         p.pass = true;
       } else {
         const hand = hands[0];
-        const space = p.spaces[hand.type];
+        const space = p.spaces[hand.spaceIndex];
         space.x = hand.x;
         space.y = hand.y;
         space.angle = hand.angle;
@@ -327,7 +319,7 @@ export default class Space21 {
         );
 
         // ポイントを追加
-        p.point += define.BLOCK_SHAPE[space.type].length;
+        p.point += space.type.point;
         p.blockZansu -= 1;
 
         // 残りの手があるかどうかを調べる
@@ -389,19 +381,20 @@ export default class Space21 {
    * ブロック候補の表示
    */
   private drawNextBlock = (
-    block: info.SpaceInfo,
+    space: info.SpaceInfo,
     cells: info.TegomaInfo,
     color: string
   ) => {
-    const x = define.NEXT_POSITIONS[block.type][0];
-    const y = define.NEXT_POSITIONS[block.type][1];
-    for (let i = 0; i < define.BLOCK_SHAPE[block.type].length; i += 1) {
-      const cell =
-        cells[y + define.BLOCK_SHAPE[block.type][i][1]][
-          x + define.BLOCK_SHAPE[block.type][i][0]
-        ];
-      cell.color = color;
-      cell.blockType = block.type;
+    const shape = space.type.shapes[0];
+    const position = space.type.tegomaPosition;
+    for (let y = 0; y < shape.length; y += 1) {
+      for (let x = 0; x < shape[y].length; x += 1) {
+        if (shape[y][x] === 1) {
+          const cell = cells[y + position.y][x + position.x];
+          cell.color = color;
+          cell.spaceType = space.type;
+        }
+      }
     }
   };
 
@@ -409,221 +402,138 @@ export default class Space21 {
    * ブロックの色表示
    */
   private drawBlock = (
-    index: number,
-    x: number,
-    y: number,
+    spaceType: type.SpaceType,
+    targetX: number,
+    targetY: number,
     cells: info.BoardInfo | info.SelectBoard,
     color: string,
     angle: number,
     flip: boolean
   ) => {
-    let block: number[][] = define.BLOCK_SHAPE[index];
-    block = this.calcBlockShape(index, block, angle, flip);
+    const shape = type.getShape(spaceType, angle, flip);
 
-    this.drawBlock2(index, block, x, y, cells, color);
-  };
-
-  private drawBlock2 = (
-    blockType: number,
-    block: number[][],
-    x: number,
-    y: number,
-    cells: info.BoardInfo,
-    color: string
-  ) => {
-    const newCells: info.BoardInfo = cells;
-    for (let i = 0; i < block.length; i += 1) {
-      const x2 = block[i][0];
-      const y2 = block[i][1];
-      newCells[y + y2][x + x2].color = color;
-      newCells[y + y2][x + x2].blockType = blockType;
-      newCells[y + y2][x + x2].isSet = true;
-    }
-  };
-
-  /**
-   *
-   * ブロックを90度回転、反転させるメソッド
-   *
-   * @param oldShape 選択されたブロック
-   * @param angle 角度
-   * @param flip 反転するかどうか
-   * @return 90度回転、もしくは反転したブロックの形
-   */
-  private calcBlockShape = (
-    blockType: number,
-    oldShape: number[][],
-    angle: number,
-    flip: boolean
-  ) => {
-    if (angle === 0 && flip === false) {
-      return oldShape;
-    }
-    let cells = this.makeCells(5, 5);
-    const cells2 = this.makeCells(5, 5);
-
-    // まず、左上を始点として角度なしで描く
-    this.drawBlock2(blockType, oldShape, 0, 0, cells, "ZZZ");
-
-    for (let a = 0; a < angle; a += 1) {
-      // 90度回転
-      for (let x = 0; x < 5; x += 1) {
-        for (let y = 0; y < 5; y += 1) {
-          cells2[y][x] = cells[5 - 1 - x][y];
-        }
-      }
-
-      // cells2 -> cells
-      cells = JSON.parse(JSON.stringify(cells2));
-    }
-
-    // 反転flgがあれば、反転させる
-    if (flip) {
-      for (let x = 0; x < 5; x += 1) {
-        for (let y = 0; y < 5; y += 1) {
-          cells2[y][x] = cells[y][4 - x];
-        }
-      }
-      // cells2 -> cells
-      cells = JSON.parse(JSON.stringify(cells2));
-    }
-
-    const shape = [];
-
-    // ZZZ が入っている座標だけを抜き出す
-    for (let y = 0; y < 5; y += 1) {
-      for (let x = 0; x < 5; x += 1) {
-        if (cells2[y][x].color != null && cells2[y][x].color === "ZZZ") {
-          const temp = [x, y];
-          shape.push(temp);
+    for (let y = 0; y < shape.length; y += 1) {
+      for (let x = 0; x < shape[y].length; x += 1) {
+        if (shape[y][x] === 1) {
+          const cell = cells[y + targetY][x + targetX];
+          cell.color = color;
+          cell.spaceType = spaceType;
+          cell.isSet = true;
         }
       }
     }
-
-    // x、yの最小値を調べる
-    let minX = 99;
-    let minY = 99;
-    for (let i = 0; i < oldShape.length; i += 1) {
-      if (shape[i][0] < minX) {
-        minX = shape[i][define.SHAPE_INDEX_X];
-      }
-      if (shape[i][1] < minY) {
-        minY = shape[i][define.SHAPE_INDEX_Y];
-      }
-    }
-    // 最小値が０じゃない場合はずれてるので、最小値が０になるようずらす
-    for (let i = 0; i < oldShape.length; i += 1) {
-      if (minX > 0) {
-        shape[i][0] -= minX;
-      }
-      if (minY > 0) {
-        shape[i][1] -= minY;
-      }
-    }
-
-    return shape;
   };
 
   /**
    * ブロックを置けるかどうかのチェック
    */
   private checkBlock = (
-    index: number,
-    x: number,
-    y: number,
+    spaceType: type.SpaceType,
+    targetX: number,
+    targetY: number,
     cells: info.BoardInfo,
     color: string,
     angle: number,
     flip: boolean
   ) => {
-    let block = define.BLOCK_SHAPE[index];
-    block = this.calcBlockShape(index, block, angle, flip);
+    const shape = type.getShape(spaceType, angle, flip);
     let isCheck = false;
 
-    for (let i = 0; i < block.length; i += 1) {
-      const newY = y + block[i][1];
-      const newX = x + block[i][0];
+    for (let y = 0; y < shape.length; y += 1) {
+      for (let x = 0; x < shape[y].length; x += 1) {
+        if (shape[y][x] === 1) {
+          const newY = y + targetY;
+          const newX = x + targetX;
 
-      // はみ出てたらダメ！
-      if (cells.length <= newY) {
-        return false;
-      }
-      if (cells[newY].length <= newX) {
-        return false;
-      }
+          // はみ出てたらダメ！
+          if (cells.length <= newY) {
+            return false;
+          }
+          if (cells[newY].length <= newX) {
+            return false;
+          }
 
-      // すでにあってもダメ！
-      if (cells[newY][newX].color !== define.COLOR_DEFAULT) {
-        return false;
-      }
+          // すでにあってもダメ！
+          if (cells[newY][newX].color !== COLOR.DEFAULT) {
+            return false;
+          }
 
-      // 右隣が同じ色ならダメ
-      if (
-        newX < cells[newY].length - 1 &&
-        cells[newY][newX + 1].color === color
-      ) {
-        return false;
-      }
-      // 左隣が同じ色ならダメ
-      if (newX > 0 && cells[newY][newX - 1].color === color) {
-        return false;
-      }
-      // 下隣が同じ色ならダメ
-      if (newY < cells.length - 1 && cells[newY + 1][newX].color === color) {
-        return false;
-      }
-      // 上隣が同じ色ならダメ
-      if (newY > 0 && cells[newY - 1][newX].color === color) {
-        return false;
-      }
+          // 右隣が同じ色ならダメ
+          if (
+            newX < cells[newY].length - 1 &&
+            cells[newY][newX + 1].color === color
+          ) {
+            return false;
+          }
+          // 左隣が同じ色ならダメ
+          if (newX > 0 && cells[newY][newX - 1].color === color) {
+            return false;
+          }
+          // 下隣が同じ色ならダメ
+          if (
+            newY < cells.length - 1 &&
+            cells[newY + 1][newX].color === color
+          ) {
+            return false;
+          }
+          // 上隣が同じ色ならダメ
+          if (newY > 0 && cells[newY - 1][newX].color === color) {
+            return false;
+          }
 
-      // 右上が同じ色ならOK
-      if (
-        newY > 0 &&
-        newX < cells[newY].length - 1 &&
-        cells[newY - 1][newX + 1].color === color
-      ) {
-        isCheck = true;
-      }
+          // 右上が同じ色ならOK
+          if (
+            newY > 0 &&
+            newX < cells[newY].length - 1 &&
+            cells[newY - 1][newX + 1].color === color
+          ) {
+            isCheck = true;
+          }
 
-      // 左上が同じ色ならOK
-      if (newY > 0 && newX > 0 && cells[newY - 1][newX - 1].color === color) {
-        isCheck = true;
-      }
+          // 左上が同じ色ならOK
+          if (
+            newY > 0 &&
+            newX > 0 &&
+            cells[newY - 1][newX - 1].color === color
+          ) {
+            isCheck = true;
+          }
 
-      // 右下が同じ色ならOK
-      if (
-        newY < cells.length - 1 &&
-        newX < cells[newY].length - 1 &&
-        cells[newY + 1][newX + 1].color === color
-      ) {
-        isCheck = true;
-      }
+          // 右下が同じ色ならOK
+          if (
+            newY < cells.length - 1 &&
+            newX < cells[newY].length - 1 &&
+            cells[newY + 1][newX + 1].color === color
+          ) {
+            isCheck = true;
+          }
 
-      // 左下が同じ色ならOK
-      if (
-        newY < cells.length - 1 &&
-        newX > 0 &&
-        cells[newY + 1][newX - 1].color === color
-      ) {
-        isCheck = true;
-      }
+          // 左下が同じ色ならOK
+          if (
+            newY < cells.length - 1 &&
+            newX > 0 &&
+            cells[newY + 1][newX - 1].color === color
+          ) {
+            isCheck = true;
+          }
 
-      // 四角を踏んでてらOK
-      if (
-        (newX === 0 && newY === 0) ||
-        (newX === 0 && newY === cells[newY].length - 1) ||
-        (newX === cells.length - 1 && newY === 0) ||
-        (newX === cells.length - 1 && newY === cells[newY].length - 1)
-      ) {
-        isCheck = true;
+          // 四角を踏んでてらOK
+          if (
+            (newX === 0 && newY === 0) ||
+            (newX === 0 && newY === cells[newY].length - 1) ||
+            (newX === cells.length - 1 && newY === 0) ||
+            (newX === cells.length - 1 && newY === cells[newY].length - 1)
+          ) {
+            isCheck = true;
+          }
+        }
       }
     }
     return isCheck;
   };
 
   private makeKouho = (
-    spaceType: number,
+    spaceType: type.SpaceType,
     color: string,
     angle: number,
     flip: boolean
@@ -636,7 +546,7 @@ export default class Space21 {
       for (let x = 0; x < board[y].length; x += 1) {
         if (this.checkBlock(spaceType, x, y, board, color, angle, flip)) {
           // 候補用の色を取得
-          const color2 = define.COLOR_SELECT;
+          const color2 = COLOR.SELECT;
 
           // ここに置いた場合の絵を書く
           const cells2 = JSON.parse(JSON.stringify(board));
@@ -664,13 +574,13 @@ export default class Space21 {
   private calcHands = (
     playerIndex: info.PlayerIndex,
     isAll: boolean
-  ): info.SpaceInfo[] => {
-    const handList: info.SpaceInfo[] = [];
+  ): info.Hand[] => {
+    const handList: info.Hand[] = [];
 
     const p = this.gameInfo.players[this.gameInfo.nowPlayer];
 
     // セットしていないスペースのリストを作る
-    const notSetSpaces = [];
+    const notSetSpaces: info.SpaceInfo[] = [];
     for (let i = 0; i < p.spaces.length; i += 1) {
       if (p.spaces[i].isSet === false) {
         notSetSpaces.push(p.spaces[i]);
@@ -678,10 +588,8 @@ export default class Space21 {
     }
 
     // ブロック数が多い順に並べる
-    notSetSpaces.sort((a, b) => {
-      return (
-        define.BLOCK_SHAPE[b.type].length - define.BLOCK_SHAPE[a.type].length
-      );
+    notSetSpaces.sort((a: info.SpaceInfo, b: info.SpaceInfo) => {
+      return b.type.point - a.type.point;
     });
 
     for (let b = 0; b < notSetSpaces.length; b += 1) {
@@ -704,14 +612,12 @@ export default class Space21 {
                   i === 1
                 )
               ) {
-                const hand: info.SpaceInfo = {
-                  type: space.type,
+                const hand: info.Hand = {
+                  spaceIndex: b,
                   x,
                   y,
                   angle,
                   flip: i === 1,
-                  isSet: false,
-                  color: p.color,
                 };
                 handList.push(hand);
                 if (isAll === false) {
@@ -740,7 +646,7 @@ export default class Space21 {
     const p = this.gameInfo.players[this.gameInfo.nowPlayer];
 
     // セットしていないスペースのリストを作る
-    const notSetSpaces = [];
+    const notSetSpaces: info.SpaceInfo[] = [];
     for (let i = 0; i < p.spaces.length; i += 1) {
       if (p.spaces[i].isSet === false) {
         notSetSpaces.push(p.spaces[i]);
@@ -748,10 +654,8 @@ export default class Space21 {
     }
 
     // ブロック数が多い順に並べる
-    notSetSpaces.sort((a, b) => {
-      return (
-        define.BLOCK_SHAPE[b.type].length - define.BLOCK_SHAPE[a.type].length
-      );
+    notSetSpaces.sort((a: info.SpaceInfo, b: info.SpaceInfo) => {
+      return b.type.point - a.type.point;
     });
 
     for (let b = 0; b < notSetSpaces.length; b += 1) {
@@ -776,13 +680,12 @@ export default class Space21 {
               ) {
                 // CPUの場合
                 if (this.gameInfo.nowPlayer !== this.gameInfo.loginPlayer) {
-                  const block = p.spaces[space.type];
-                  block.x = x;
-                  block.y = y;
-                  block.angle = angle;
-                  block.flip = i === 1;
-                  block.isSet = true;
-                  console.log("decideSpace()... change block", block);
+                  space.x = x;
+                  space.y = y;
+                  space.angle = angle;
+                  space.flip = i === 1;
+                  space.isSet = true;
+                  console.log("decideSpace()... change space", space);
 
                   // ボードにスペースを書き込む
                   this.drawBlock(
@@ -791,12 +694,12 @@ export default class Space21 {
                     y,
                     this.gameInfo.board,
                     p.color,
-                    block.angle,
-                    block.flip
+                    space.angle,
+                    space.flip
                   );
 
                   // ポイントを追加
-                  p.point += define.BLOCK_SHAPE[space.type].length;
+                  p.point += space.type.point;
                   p.blockZansu -= 1;
 
                   // 次のプレイヤー
@@ -817,7 +720,7 @@ export default class Space21 {
                   const timeoutId = setTimeout(() => {
                     clearTimeout(timeoutId);
                     this.goNext(cpuCallback);
-                  }, define.CPU_TIMER_MSEC);
+                  }, CPU_TIMER_MSEC);
                 }
                 return;
               }
@@ -844,7 +747,7 @@ export default class Space21 {
       const timeoutId = setTimeout(() => {
         clearTimeout(timeoutId);
         this.goNext(cpuCallback);
-      }, define.CPU_TIMER_MSEC);
+      }, CPU_TIMER_MSEC);
     }
   };
 
@@ -863,7 +766,7 @@ export default class Space21 {
   };
 
   private makeNexts = (blocks: info.SpaceInfo[]): info.BoardInfo => {
-    const cells: info.TegomaInfo = this.makeCells(20, 12);
+    const cells: info.TegomaInfo = this.makeCells(21, 14);
 
     for (let i = 0; i < blocks.length; i += 1) {
       if (blocks[i].isSet === false) {
@@ -880,8 +783,8 @@ export default class Space21 {
       const row = [];
       for (let x = 0; x < w; x += 1) {
         const cell = {
-          color: define.COLOR_DEFAULT,
-          blockType: -1,
+          color: COLOR.DEFAULT,
+          spaceType: null,
           isSet: false,
         };
         row.push(cell);
@@ -899,15 +802,19 @@ export default class Space21 {
     playerTypes: info.PlayerType[]
   ): info.PlayerInfo[] => {
     const players: info.PlayerInfo[] = [];
-    const colors2 = define.COLORS;
+    const colors2 = COLOR.COLORS;
     let userCount = 0;
     let cpuCount = 0;
     for (let i = 0; i < 4; i += 1) {
       const spaces: info.SpaceInfo[] = [];
 
-      for (let b = 0; b < define.BLOCK_SHAPE.length; b += 1) {
-        const block: info.SpaceInfo = {
-          type: b,
+      for (let b = 0; b < type.SpaceArray.length; b += 1) {
+        // Spaceのindexを保持しておく
+        type.SpaceArray[b].index = b;
+
+        // Space情報を作成
+        const space: info.SpaceInfo = {
+          type: type.SpaceArray[b],
           isSet: false,
           color: colors2[i],
           x: -1,
@@ -915,7 +822,7 @@ export default class Space21 {
           angle: 0,
           flip: false,
         };
-        spaces.push(block);
+        spaces.push(space);
       }
 
       let name: string;

@@ -3,12 +3,13 @@ import React from "react";
 import MediaQuery from "react-responsive";
 
 import * as info from "../domain/GameInfo";
+import { SpaceType } from "../domain/SpaceType";
 import GamePlayPhoneComponent from "./GamePlayPhoneComponent";
 import GamePlayPcComponent from "./GamePlayPcComponent";
 
 type Props = {
   gameInfo: info.GameInfo;
-  onSelectKouho: (blockType: number) => void;
+  onSelectKouho: (spaceType: SpaceType) => void;
   onRestart: () => void;
   onDecide: (x: number, y: number) => void;
   onRotate: () => void;

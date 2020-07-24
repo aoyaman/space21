@@ -3,6 +3,7 @@ import { ThunkDispatch } from "redux-thunk";
 import { Action } from "redux";
 
 import { AllState } from "../entity/store";
+import { SpaceType } from "../domain/SpaceType";
 
 import {
   selectKouho,
@@ -21,7 +22,7 @@ const mapStateToProps = (state: AllState) => ({
 const mapDispatchToProps = (
   dispatch: ThunkDispatch<AllState, undefined, Action>
 ) => ({
-  onSelectKouho: (blockType: number) => dispatch(selectKouho(blockType)),
+  onSelectKouho: (spaceType: SpaceType) => dispatch(selectKouho(spaceType)),
   onRestart: () => dispatch(startGame()),
   onRotate: () => dispatch(rotateSpace()),
   onFlip: () => dispatch(flip()),

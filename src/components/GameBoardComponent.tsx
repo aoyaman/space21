@@ -2,6 +2,7 @@ import React from "react";
 
 import { makeStyles } from "@material-ui/core/styles";
 import * as info from "../domain/GameInfo";
+import { SpaceType } from "../domain/SpaceType";
 
 const BOARD_MAX_WIDTH = 500;
 
@@ -32,7 +33,7 @@ const useStyles = makeStyles(() => ({
 
 type Props = {
   board: info.BoardInfo;
-  onSelect?: ((blockType: number) => void) | undefined;
+  onSelect?: ((spaceType: SpaceType) => void) | undefined;
   width?: number | undefined;
 };
 
@@ -63,7 +64,8 @@ const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
                 console.log(e);
               }}
               onKeyUp={() => {
-                if (cell.blockType >= 0 && onSelect) onSelect(cell.blockType);
+                if (cell.spaceType != null && onSelect)
+                  onSelect(cell.spaceType);
               }}
               role="button"
               tabIndex={0}

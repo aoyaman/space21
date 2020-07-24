@@ -1,12 +1,11 @@
-
-
+import { SpaceType } from "./SpaceType";
 
 /**
  * セル情報
  */
 export interface CellInfo {
   color: string;
-  blockType: number;
+  spaceType: SpaceType | null;
   isSet: boolean;
 }
 
@@ -14,7 +13,7 @@ export interface CellInfo {
  * スペース情報
  */
 export interface SpaceInfo {
-  type: number;
+  type: SpaceType;
   isSet: boolean;
   color: string;
   x: number;
@@ -50,7 +49,7 @@ export type BoardInfo = CellInfo[][];
 export type TegomaInfo = BoardInfo;
 
 export type PlayerIndex = number;
-export type SpaceType = number;
+// export type SpaceType = number;
 export type AngleType = number;
 export type FlipType = boolean;
 
@@ -119,7 +118,7 @@ export interface SelectInfo {
  * 手
  */
 export interface Hand {
-  spaceType: SpaceType;
+  spaceIndex: number;
   x: number;
   y: number;
   angle: AngleType;
