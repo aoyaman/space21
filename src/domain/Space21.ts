@@ -62,10 +62,10 @@ export default class Space21 {
       const flipDefault = false;
 
       const playerInfo = this.gameInfo.players[playerIndex];
-      if (playerInfo.playerType !== info.PlayerType.HUMAN) {
-        reject(new Error("onSelectSpace() HUMANではありません"));
-        return;
-      }
+      // if (playerInfo.playerType !== info.PlayerType.HUMAN) {
+      //   reject(new Error("onSelectSpace() HUMANではありません"));
+      //   return;
+      // }
 
       if (playerInfo.spaces[spaceType.index].isSet === true) {
         reject(new Error("onSelectSpace() 既にセットされています"));
@@ -117,7 +117,7 @@ export default class Space21 {
         }
       }
 
-      const selectBoard: info.SelectBoard = this.makeCells(5, 5);
+      const selectBoard: info.SelectBoard = this.makeCells(6, 6);
       this.drawBlock(spaceType, 0, 0, selectBoard, COLOR.SELECT, 0, false);
 
       playerInfo.selectInfo = {
@@ -151,6 +151,18 @@ export default class Space21 {
       if (selectInfo.angle >= 4) {
         selectInfo.angle = 0;
       }
+      const selectBoard: info.SelectBoard = this.makeCells(6, 6);
+      this.drawBlock(
+        selectInfo.spaceType,
+        0,
+        0,
+        selectBoard,
+        COLOR.SELECT,
+        selectInfo.angle,
+        selectInfo.flip
+      );
+      selectInfo.board = selectBoard;
+
       selectInfo.kouhoList = this.makeKouho(
         selectInfo.spaceType,
         p.color,
@@ -177,6 +189,19 @@ export default class Space21 {
       }
 
       selectInfo.flip = !selectInfo.flip;
+
+      const selectBoard: info.SelectBoard = this.makeCells(6, 6);
+      this.drawBlock(
+        selectInfo.spaceType,
+        0,
+        0,
+        selectBoard,
+        COLOR.SELECT,
+        selectInfo.angle,
+        selectInfo.flip
+      );
+      selectInfo.board = selectBoard;
+
       selectInfo.kouhoList = this.makeKouho(
         selectInfo.spaceType,
         p.color,
@@ -322,6 +347,9 @@ export default class Space21 {
         p.point += space.type.point;
         p.blockZansu -= 1;
 
+        // 手駒リストを修正
+        p.tegoma = this.makeNexts(p.spaces);
+
         // 残りの手があるかどうかを調べる
         p.pass = this.calcHands(this.gameInfo.nowPlayer, false).length === 0;
       }
@@ -369,7 +397,7 @@ export default class Space21 {
       date: new Date(),
       nowPlayer,
       loginPlayer: 0,
-      board: this.makeCells(20, 20),
+      board: this.makeCells(info.BOARD_WIDTH, info.BOARD_HEIGHT),
       players,
       cpuWaitMsec: 2000,
     };
@@ -517,7 +545,7 @@ export default class Space21 {
             isCheck = true;
           }
 
-          // 四角を踏んでてらOK
+          // 四角を踏んでたらOK
           if (
             (newX === 0 && newY === 0) ||
             (newX === 0 && newY === cells[newY].length - 1) ||
@@ -613,7 +641,7 @@ export default class Space21 {
                 )
               ) {
                 const hand: info.Hand = {
-                  spaceIndex: b,
+                  spaceIndex: space.type.index,
                   x,
                   y,
                   angle,

@@ -99,10 +99,10 @@ export const selectKouho = (spaceType: SpaceType) => (
   dispatch: Dispatch,
   getState: () => AllState
 ): void => {
-  const { gameInfo } = getState();
+  const { gameInfo, playertab } = getState();
   const space21: Space21 = new Space21(gameInfo);
   space21
-    .onSelectSpace(spaceType, gameInfo.loginPlayer)
+    .onSelectSpace(spaceType, playertab.tabIndex)
     .then((gameInfo2: info.GameInfo): void => {
       dispatch({
         type: types.CHANGE_GAME_INFO,
@@ -118,9 +118,9 @@ export const rotateSpace = () => (
   dispatch: Dispatch,
   getState: () => AllState
 ): void => {
-  const { gameInfo } = getState();
+  const { gameInfo, playertab } = getState();
   const space21: Space21 = new Space21(gameInfo);
-  space21.rotate(gameInfo.loginPlayer).then((gameInfo2: info.GameInfo) => {
+  space21.rotate(playertab.tabIndex).then((gameInfo2: info.GameInfo) => {
     dispatch({
       type: types.CHANGE_GAME_INFO,
       gameInfo: gameInfo2,
@@ -134,9 +134,9 @@ export const flip = () => (
   dispatch: Dispatch,
   getState: () => AllState
 ): void => {
-  const { gameInfo } = getState();
+  const { gameInfo, playertab } = getState();
   const space21: Space21 = new Space21(gameInfo);
-  space21.rotate(gameInfo.loginPlayer).then((gameInfo2: info.GameInfo) => {
+  space21.flip(playertab.tabIndex).then((gameInfo2: info.GameInfo) => {
     dispatch({
       type: types.CHANGE_GAME_INFO,
       gameInfo: gameInfo2,
@@ -144,6 +144,11 @@ export const flip = () => (
   });
 };
 
+/**
+ * スタート画面でプレイヤーの種類を選択
+ * @param index
+ * @param playerType
+ */
 export const onChangePlayerType = (
   index: number,
   playerType: info.PlayerType
@@ -152,5 +157,18 @@ export const onChangePlayerType = (
     type: types.CHANGE_PLAYER_SELECT,
     index,
     playerType,
+  });
+};
+
+/**
+ * プレイヤータブを選択
+ * @param index
+ */
+export const onSelectPlayerTab = (index: number) => (
+  dispatch: Dispatch
+): void => {
+  dispatch({
+    type: types.SELECT_PLAYER_TAB,
+    index,
   });
 };

@@ -1,6 +1,5 @@
 import React from "react";
 
-import Box from "@material-ui/core/Box";
 import Container from "@material-ui/core/Container";
 import Paper from "@material-ui/core/Paper";
 import Button from "@material-ui/core/Button";
@@ -9,12 +8,10 @@ import CssBaseline from "@material-ui/core/CssBaseline";
 import { makeStyles } from "@material-ui/core/styles";
 
 import * as info from "../domain/GameInfo";
-import { SpaceType } from "../domain/SpaceType";
 
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
-import SelectedSpaceComponent from "./SelectedSpaceComponent";
-import GameTegomaComponent from "./GameTegomaComponent";
+import PlayersContainer from "../containers/PlayersContainer";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,21 +38,10 @@ const useStyles = makeStyles((theme) => ({
 
 type Props = {
   gameInfo: info.GameInfo;
-  onSelectKouho: (spaceType: SpaceType) => void;
   onRestart: () => void;
-  onDecide: (x: number, y: number) => void;
-  onRotate: () => void;
-  onFlip: () => void;
 };
 
-const GamePlayPcComponent: React.FC<Props> = ({
-  gameInfo,
-  onSelectKouho,
-  onRestart,
-  onDecide,
-  onRotate,
-  onFlip,
-}) => {
+const GamePlayPcComponent: React.FC<Props> = ({ gameInfo, onRestart }) => {
   const classes = useStyles();
 
   return (
@@ -84,59 +70,9 @@ const GamePlayPcComponent: React.FC<Props> = ({
           <Paper className={classes.paper} elevation={3}>
             <GameBoardComponent board={gameInfo.board} width={300} />
           </Paper>
-
-          {/* 手持ちのスペース */}
-          <Paper className={classes.paper} elevation={3}>
-            <GameTegomaComponent
-              board={gameInfo.players[gameInfo.loginPlayer].tegoma}
-              onSelect={onSelectKouho}
-              width={300}
-            />
-          </Paper>
         </div>
 
-        {/* 選択したスペース  */}
-        {gameInfo.players[gameInfo.loginPlayer].selectInfo && (
-          <div>
-            <Paper className={classes.paper} elevation={3}>
-              <SelectedSpaceComponent
-                select={gameInfo.players[gameInfo.loginPlayer].selectInfo}
-                onRotate={onRotate}
-                onFlip={onFlip}
-              />
-            </Paper>
-          </div>
-        )}
-
-        {/* 候補 */}
-        <div>
-          {gameInfo.players[gameInfo.loginPlayer].selectInfo &&
-            gameInfo.players[gameInfo.loginPlayer].selectInfo?.kouhoList.map(
-              (kouhoItem, index) => (
-                <Paper
-                  className={classes.paper}
-                  key={`x=${kouhoItem.x},y=${kouhoItem.y}`}
-                  elevation={3}
-                >
-                  <p>候補{index + 1}</p>
-                  <GameBoardComponent board={kouhoItem.cells} width={180} />
-                  {gameInfo.nowPlayer === gameInfo.loginPlayer && (
-                    <Box m={1}>
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={() => {
-                          onDecide(kouhoItem.x, kouhoItem.y);
-                        }}
-                      >
-                        この候補に決定
-                      </Button>
-                    </Box>
-                  )}
-                </Paper>
-              )
-            )}
-        </div>
+        <PlayersContainer />
       </Container>
     </>
   );

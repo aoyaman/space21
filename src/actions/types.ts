@@ -4,6 +4,7 @@ import { PlayerType } from "../domain/GameInfo";
 export const START_GAME = "START_GAME";
 export const CHANGE_GAME_INFO = "CHANGE_GAME_INFO";
 export const CHANGE_PLAYER_SELECT = "CHANGE_PLAYER_SELECT";
+export const SELECT_PLAYER_TAB = "SELECT_PLAYER_TAB";
 
 /**
  * ゲーム情報の更新
@@ -28,4 +29,12 @@ export interface ActionChangePlayerSelect {
   type: typeof CHANGE_PLAYER_SELECT;
   index: number;
   playerType: PlayerType;
+}
+
+/**
+ * プレイヤータブで選択
+ */
+export interface ActionSelectPlayerTab {
+  type: typeof SELECT_PLAYER_TAB;
+  index: number;
 }

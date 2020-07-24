@@ -42,14 +42,7 @@ const GamePlayComponent: React.FC<Props> = ({
       </MediaQuery>
 
       <MediaQuery query="(min-width: 481px)">
-        <GamePlayPcComponent
-          gameInfo={gameInfo}
-          onSelectKouho={onSelectKouho}
-          onRestart={onRestart}
-          onDecide={onDecide}
-          onRotate={onRotate}
-          onFlip={onFlip}
-        />
+        <GamePlayPcComponent gameInfo={gameInfo} onRestart={onRestart} />
       </MediaQuery>
     </>
   );

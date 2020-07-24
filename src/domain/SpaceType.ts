@@ -1614,8 +1614,8 @@ export const STAIRS: SpaceType = {
       // angle:0, flip:1
       [1, 0, 0, 0, 0, 0],
       [1, 1, 0, 0, 0, 0],
+      [0, 1, 1, 0, 0, 0],
       [0, 0, 1, 1, 0, 0],
-      [0, 0, 0, 1, 1, 0],
       [0, 0, 0, 0, 0, 0],
       [0, 0, 0, 0, 0, 0],
     ],
@@ -1766,7 +1766,7 @@ export const L: SpaceType = {
 export const CROSS: SpaceType = {
   name: "CROSS",
   index: 0,
-  point: 5,
+  point: 6,
   tegomaPosition: { x: 17, y: 10 },
   shapes: [
     [

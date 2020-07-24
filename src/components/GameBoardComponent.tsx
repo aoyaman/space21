@@ -51,13 +51,13 @@ const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
               className={classes.cell}
               style={{
                 backgroundColor: `#${cell.color}`,
-                width: width ? `${width / 20}px` : "4vw",
-                height: width ? `${width / 20}px` : "4vw",
+                width: width ? `${width / info.BOARD_WIDTH}px` : "4vw",
+                height: width ? `${width / info.BOARD_WIDTH}px` : "4vw",
                 maxWidth: width
-                  ? `${width / 20}px`
+                  ? `${width / info.BOARD_WIDTH}px`
                   : `${BOARD_MAX_WIDTH / board[y].length}px`,
                 maxHeight: width
-                  ? `${width / 20}px`
+                  ? `${width / info.BOARD_WIDTH}px`
                   : `${BOARD_MAX_WIDTH / board[y].length}px`,
               }}
               onClick={(e) => {

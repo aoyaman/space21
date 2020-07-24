@@ -140,3 +140,6 @@ export interface DecideSpaceInfo {
   player: PlayerInfo[];
   tegoma: CellInfo[][];
 }
+
+export const BOARD_WIDTH = 21;
+export const BOARD_HEIGHT = 21;
