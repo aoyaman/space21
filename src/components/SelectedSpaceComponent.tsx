@@ -2,7 +2,9 @@ import React from "react";
 import Button from "@material-ui/core/Button";
 import Box from "@material-ui/core/Box";
 import { makeStyles } from "@material-ui/core/styles";
+import { useDrag } from "react-dnd";
 
+import { ItemTypes } from "../dnd/Constants";
 import * as info from "../domain/GameInfo";
 
 const useStyles = makeStyles(() => ({
@@ -33,6 +35,13 @@ const SelectedSpaceComponent: React.FC<Props> = ({
 }) => {
   const classes = useStyles();
 
+  const [{ isDragging }, drag] = useDrag({
+    item: { type: ItemTypes.SPACE },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  })
+
   const makeKeyY = (y: number): string => {
     return `selct_cells_y${y}`;
   };
@@ -55,7 +64,11 @@ const SelectedSpaceComponent: React.FC<Props> = ({
       <p>選択したスペース</p>
 
       <Box m={1}>
-        <table className={classes.celltable}>
+        <table
+          className={classes.celltable}
+          ref={drag}
+          style={{ opacity: isDragging ? 0.5 : 1 }}
+        >
           <tbody>
             {select.board &&
               select.board.map((row, y) => {

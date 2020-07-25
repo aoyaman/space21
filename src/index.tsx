@@ -6,6 +6,9 @@ import { Provider } from "react-redux";
 import { createStore, applyMiddleware, compose } from "redux";
 import thunk from "redux-thunk";
 import logger from "redux-logger";
+import { DndProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
+
 import rootReducer from "./reducers";
 import * as serviceWorker from "./serviceWorker";
 import AppContainer from "./containers/AppContainer";
@@ -26,7 +29,9 @@ const store = createStore(
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <AppContainer />
+      <DndProvider backend={HTML5Backend}>
+        <AppContainer />
+      </DndProvider>
     </Provider>
   </React.StrictMode>,
   document.getElementById("root")

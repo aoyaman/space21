@@ -113,6 +113,7 @@ const PlayersComponent: React.FC<Props> = ({
             onSelect={onSelectKouho}
             width={300}
           />
+
           {/* 選択したスペース  */}
           {player.selectInfo && (
             <div>
