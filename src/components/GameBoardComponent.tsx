@@ -3,6 +3,7 @@ import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import * as info from "../domain/GameInfo";
 import { SpaceType } from "../domain/SpaceType";
+import CellComponent from "./CellComponent";
 
 const BOARD_MAX_WIDTH = 500;
 
@@ -41,34 +42,30 @@ const GameBoardComponent: React.FC<Props> = ({ board, onSelect, width }) => {
   const classes = useStyles();
 
   const makeList = () => {
+    const maxWidth: string = width
+      ? `${width / info.BOARD_WIDTH}px`
+      : `${BOARD_MAX_WIDTH / board[0].length}px`;
+
+    const maxHeight: string = width
+      ? `${width / info.BOARD_WIDTH}px`
+      : `${BOARD_MAX_WIDTH / board[0].length}px`;
+
     const list = [];
     for (let y = 0; y < board.length; y += 1) {
       for (let x = 0; x < board[y].length; x += 1) {
         const cell = board[y][x];
         list.push(
           <React.Fragment key={`x${x}y${y}`}>
-            <div
-              className={classes.cell}
-              style={{
-                backgroundColor: `#${cell.color}`,
-                width: width ? `${width / info.BOARD_WIDTH}px` : "4vw",
-                height: width ? `${width / info.BOARD_WIDTH}px` : "4vw",
-                maxWidth: width
-                  ? `${width / info.BOARD_WIDTH}px`
-                  : `${BOARD_MAX_WIDTH / board[y].length}px`,
-                maxHeight: width
-                  ? `${width / info.BOARD_WIDTH}px`
-                  : `${BOARD_MAX_WIDTH / board[y].length}px`,
-              }}
-              onClick={(e) => {
-                console.log(e);
-              }}
-              onKeyUp={() => {
+            <CellComponent
+              backgroundColor={`#${cell.color}`}
+              width={width ? `${width / info.BOARD_WIDTH}px` : "4vw"}
+              height={width ? `${width / info.BOARD_WIDTH}px` : "4vw"}
+              maxWidth={maxWidth}
+              maxHeight={maxHeight}
+              onClick={() => {
                 if (cell.spaceType != null && onSelect)
                   onSelect(cell.spaceType);
               }}
-              role="button"
-              tabIndex={0}
             />
           </React.Fragment>
         );
