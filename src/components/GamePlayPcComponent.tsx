@@ -11,6 +11,7 @@ import * as info from "../domain/GameInfo";
 
 import GameHeaderComponent from "./GameHeaderComponent";
 import GameBoardComponent from "./GameBoardComponent";
+import CustomDragLayer from "./CustomDragLayer";
 import PlayersContainer from "../containers/PlayersContainer";
 
 const useStyles = makeStyles((theme) => ({
@@ -73,6 +74,7 @@ const GamePlayPcComponent: React.FC<Props> = ({ gameInfo, onRestart }) => {
         </div>
 
         <PlayersContainer />
+        <CustomDragLayer />
       </Container>
     </>
   );
